@@ -390,6 +390,8 @@ COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-15.99.so \
     /usr/lib/x86_64-linux-gnu/pulseaudio/
 
+COPY ./ffmpeg/rootfs /
+
 RUN /usr/bin/ffmpeg -version
 
 ARG BUILD_DESCRIPTION="nvidia cuda ffmpeg"
@@ -412,3 +414,5 @@ LABEL \
     org.opencontainers.image.created=${BUILD_DATE} \
     org.opencontainers.image.revision=${BUILD_REF} \
     org.opencontainers.image.version=${BUILD_VERSION}
+
+ENTRYPOINT ["docker-ffmpeg-entrypoint"]
