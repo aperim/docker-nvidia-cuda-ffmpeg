@@ -105,7 +105,9 @@ RUN cd /opt/src/ffmpeg && \
 	--arch=amd64 \
 	--enable-gpl \
 	--disable-stripping \
+    --enable-cuda \
     --enable-cuda-nvcc \
+    --enable-cuvid \
 	--enable-gnutls \
 	--enable-ladspa \
 	--enable-libaom \
@@ -152,6 +154,7 @@ RUN cd /opt/src/ffmpeg && \
 	--enable-libzvbi \
 	--enable-lv2 \
     --enable-nonfree \
+    --enable-nvdec \
     --enable-nvenc \
 	--enable-omx \
 	--enable-openal \
@@ -386,6 +389,8 @@ COPY --from=builder \
 COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-15.99.so \
     /usr/lib/x86_64-linux-gnu/pulseaudio/
+
+RUN /usr/bin/ffmpeg -version
 
 ARG BUILD_DESCRIPTION="nvidia cuda ffmpeg"
 ARG BUILD_NAME="nvidia cuda ffmpeg"
