@@ -5,8 +5,6 @@ ARG RUNIMAGE=${CUDA}-runtime-${FLAVOUR}
 
 FROM nvidia/cuda:${BULDIMAGE} AS builder
 
-ARG FFMPEG_VERSION=5.1
-
 RUN apt-get update && \
     apt-get -y --allow-change-held-packages full-upgrade && \
     apt-get -y install \
@@ -84,9 +82,11 @@ RUN apt-get update && \
             wget \
             yasm
 
+ARG FFMPEG_VERSION=5.1.1
+
 RUN mkdir -p /opt/src/nv-codec-headers /opt/src/ffmpeg && \
     git clone --depth 1 https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /opt/src/nv-codec-headers && \
-    git clone --depth 1 --branch release/${FFMPEG_VERSION} https://git.ffmpeg.org/ffmpeg.git /opt/src/ffmpeg
+    git clone --depth 1 --branch n${FFMPEG_VERSION} https://git.ffmpeg.org/ffmpeg.git /opt/src/ffmpeg
 
 RUN cd /opt/src/nv-codec-headers && \
     make install
