@@ -1,0 +1,147 @@
+---
+name: CI
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  workflow_dispatch:
+
+jobs:
+  information:
+    name: Gather add-on information
+    runs-on: ubuntu-latest
+    outputs:
+      containersha: ${{ steps.information.outputs.containersha }}
+      description: ${{ steps.information.outputs.description }}
+      environment: ${{ steps.information.outputs.environment }}
+      name: ${{ steps.information.outputs.name }}
+      version: ${{ steps.information.outputs.version }}
+      build_date: ${{ steps.information.outputs.build_date }}
+      api_url: ${{ steps.information.outputs.api_url }}
+    steps:
+      - name: ⤵️ Check out code from GitHub
+        uses: actions/checkout@v3
+      - name: ℹ️ Gather version and environment
+        id: information
+        # yamllint disable rule:line-length
+        run: |
+          sha="${{ github.sha }}"
+          environment="edge"
+          version="${sha:0:7}"
+          echo "::set-output name=containersha::${version}"
+          if [[ "${{ github.event_name }}" = "release" ]]; then
+            version="${{ github.event.release.tag_name }}"
+            version="${version,,}"
+            version="${version#v}"
+            environment="stable"
+            if [[ "${{ github.event.release.prerelease }}" = "true" ]]; then
+              environment="beta"
+            fi
+          fi
+
+          echo "::set-output name=environment::${environment}"
+          echo "::set-output name=version::${version}"
+
+          echo "::set-output name=name::CUDA ffmpeg ${environment}"
+          echo "::set-output name=description::CUDA ffmpeg ${environment} in a container"
+        # yamllint enable rule:line-length
+
+  build:
+    name: 👷 Build
+    needs:
+      - information
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code from GitHub
+        uses: actions/checkout@v3
+
+      - name: Install Latest Docker
+        # yamllint disable rule:line-length
+        run: |
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
+          sudo apt-get update
+          sudo apt-get install docker-ce
+        # yamllint enable rule:line-length
+
+      - name: 📝 Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            aperimau/nvidia-cuda-ffmpeg
+            ghcr.io/aperim/nvidia-cuda-ffmpeg
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+            type=edge,enable=true,priority=700,prefix=,suffix=,branch=$repo.default_branch
+
+      - name: 🏗 Set up build cache
+        id: cache
+        uses: actions/cache@v3.0.8
+        with:
+          path: /tmp/.buildx-cache
+          # Key is named differently to avoid collision
+          key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-multi-buildx
+
+      - name: 🏗 Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: 🏗 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+
+      - name: 🏗  Login to Docker Container Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🏗  Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CI_PAT }}
+
+      - name: 🚀 Build
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          context: ./
+          file: ./ffmpeg/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+          # yamllint disable-line rule:line-length
+          # platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+          platforms: linux/amd64
+          build-args: |
+            BUILD_DATE=${{ needs.information.outputs.version }}
+            BUILD_DESCRIPTION=${{ needs.information.outputs.description }}
+            BUILD_NAME=${{ needs.information.outputs.name }}
+            BUILD_REF=${{ github.sha }}
+            BUILD_REPOSITORY=${{ github.repository }}
+            BUILD_VERSION=${{ needs.information.outputs.version }}
+      # This ugly bit is necessary, or our cache will grow forever...
+      # Well until we hit GitHub's limit of 5GB :)
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: 🚚 Swap build cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
