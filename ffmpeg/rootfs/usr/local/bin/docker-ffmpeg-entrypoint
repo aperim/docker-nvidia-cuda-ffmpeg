@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+echo >&2 "🆗 Ready"
+if [[ -x "/usr/bin/ffmpeg" ]]; then
+  # first arg is `-f` or `--some-option`
+  if [ "${1#-}" != "$1" ]; then
+    set -- /usr/bin/ffmpeg "$@"
+  fi
+
+  "$@"
+fi 
