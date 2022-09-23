@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-INPUT0="${INPUT0:-\/etc\/mosaic\/1920x1080.png}"
-INPUT1="${INPUT1:-\/etc\/mosaic\/1920x1080.png}"
-INPUT2="${INPUT2:-\/etc\/mosaic\/1920x1080.png}"
-INPUT3="${INPUT3:-\/etc\/mosaic\/1920x1080.png}"
-INPUT4="${INPUT4:-\/etc\/mosaic\/1920x1080.png}"
-INPUT5="${INPUT5:-\/etc\/mosaic\/1920x1080.png}"
-INPUT6="${INPUT6:-\/etc\/mosaic\/1920x1080.png}"
+INPUT0="${INPUT0:-/etc/mosaic/1920x1080.png}"
+INPUT1="${INPUT1:-/etc/mosaic/1920x1080.png}"
+INPUT2="${INPUT2:-/etc/mosaic/1920x1080.png}"
+INPUT3="${INPUT3:-/etc/mosaic/1920x1080.png}"
+INPUT4="${INPUT4:-/etc/mosaic/1920x1080.png}"
+INPUT5="${INPUT5:-/etc/mosaic/1920x1080.png}"
+INPUT6="${INPUT6:-/etc/mosaic/1920x1080.png}"
 CONTAINER="${CONTAINER:-mpegts}"
-OUTPUT="${OUTPUT:-udp\:\/\/224.0.51.255\:1234?pkt_size=188}"
+OUTPUT="${OUTPUT:-udp://224.0.51.255:1234?pkt_size=188}"
 BITRATE="${BITRATE:-8M}"
 
 ffmpeg=$(command -v ffmpeg)
