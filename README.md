@@ -84,9 +84,9 @@ services:
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: all
       NVIDIA_REQUIRE_CUDA: cuda>=11.4
-      INPUT1: http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8
-      INPUT2: https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
-      INPUT3: https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8
+      INPUT1: https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8
+      INPUT2: https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8
+      INPUT3: http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl)
       INPUT4: https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8
     volumes:
       - "/etc/timezone:/etc/timezone:ro"
@@ -101,9 +101,9 @@ services:
 ```bash
 docker run -it --rm \
     -e GENCMD=1 \
-    -e INPUT1=http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8 \
-    -e INPUT2=https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8 \
-    -e INPUT3=https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8 \
+    -e INPUT1=https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8 \
+    -e INPUT2=https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8 \
+    -e INPUT3=http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl) \
     -e INPUT4=https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8 \
     ghcr.io/aperim/nvidia-cuda-ffmpeg:latest mosaic
 ```
