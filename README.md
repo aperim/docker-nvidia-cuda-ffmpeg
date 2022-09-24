@@ -91,7 +91,6 @@ services:
     volumes:
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
-      - "/home/operations/mosaic:/mosaic:ro"
     command: mosaic
 
 ```
