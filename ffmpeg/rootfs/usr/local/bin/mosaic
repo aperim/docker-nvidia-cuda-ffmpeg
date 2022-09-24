@@ -262,7 +262,6 @@ if [ "${GENCMD}" != "0" ]; then
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \\\\\n\t${ENVIRONMENT_VARIABLES} \\\\\n\t${CONTAINER_IMAGE}:${CONTAINER_TAG} mosaic"
 	echo -e >&2 "\n⌨️ ffmpeg command"
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${FFMPEG_COMMAND}"
-	echo -e "${COMMAND_ARRAY[@]}"
 else
 	echo >&2 "🎥 Starting mosaic"
 	"${COMMAND_ARRAY[@]}"
