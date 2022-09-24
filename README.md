@@ -101,6 +101,8 @@ services:
 
 #### Example To Generate Your Own Command
 
+Running the command below:
+
 ```bash
 docker run -it --rm \
     -e GENCMD=1 \
@@ -109,4 +111,50 @@ docker run -it --rm \
     -e INPUT3=http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl) \
     -e INPUT4=https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8 \
     ghcr.io/aperim/nvidia-cuda-ffmpeg:latest mosaic
+```
+
+Would generate this example output
+
+```text
+🖥️ mosaic command
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
+        -e INPUT0="/etc/mosaic/1920x1080-black.png" \
+        -e INPUT1="https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8" \
+        -e INPUT2="https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8" \
+        -e INPUT3="http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl)" \
+        -e INPUT4="https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8" \
+        -e CONTAINER="mpegts" \
+        -e OUTPUT="udp://224.0.51.1:1234?pkt_size=188" \
+        -e BITRATE="8M" \
+        -e ENCODER="hevc" \
+        -e WIDTH="1920" \
+        -e HEIGHT="1080" \
+        -e FFMPEG_THREAD_QUEUE_SIZE="512" \
+        -e FFMPEG_CUDA_FORMAT="nv12" \
+        ghcr.io/aperim/nvidia-cuda-ffmpeg:latest mosaic
+
+⌨️ ffmpeg command
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest \
+        -nostats -y -hide_banner -loglevel warning -err_detect ignore_err \
+        -thread_queue_size 512 -hwaccel cuda -hwaccel_output_format nv12 -i /etc/mosaic/1920x1080-black.png \
+        -reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000-thread_queue_size 512 -hwaccel cuda -hwaccel_output_format nv12 -i https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8 \
+        -reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000-thread_queue_size 512 -hwaccel cuda -hwaccel_output_format nv12 -i https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8 \
+        -reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000-thread_queue_size 512 -hwaccel cuda -hwaccel_output_format nv12 -i http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl) \
+        -reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000-thread_queue_size 512 -hwaccel cuda -hwaccel_output_format nv12 -i https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8 \
+        -filter_complex " \
+         \
+        [0:v]format=nv12,hwupload_cuda,scale_cuda=-2:w=1920:h=1080:format=nv12[base]; \
+        [1:v]format=nv12,hwupload_cuda,scale_cuda=-2:w=960:h=540:format=nv12,fps=24,setpts=PTS-STARTPTS[panel1]; \
+        [2:v]format=nv12,hwupload_cuda,scale_cuda=-2:w=960:h=540:format=nv12,fps=24,setpts=PTS-STARTPTS[panel2]; \
+        [3:v]format=nv12,hwupload_cuda,scale_cuda=-2:w=960:h=540:format=nv12,fps=24,setpts=PTS-STARTPTS[panel3]; \
+        [4:v]format=nv12,hwupload_cuda,scale_cuda=-2:w=960:h=540:format=nv12,fps=24,setpts=PTS-STARTPTS[panel4]; \
+        [base][panel1]overlay_cuda=shortest=0:x=0:y=0[layer1]; \
+        [layer1][panel2]overlay_cuda=shortest=0:x=960:y=0[layer2]; \
+        [layer2][panel3]overlay_cuda=shortest=0:x=0:y=540[layer3]; \
+        [layer3][panel4]overlay_cuda=shortest=0:x=960:y=540[final] \
+         \
+        " \
+        -map "[final]" -c:v hevc_nvenc -preset fast -tune ull -zerolatency 1 -b:v 8M \
+        -map 1:a:1\? -map 2:a:2\? -map 3:a:3\? -map 4:a:4\? \
+        -f mpegts "udp://224.0.51.1:1234?pkt_size=188"
 ```
