@@ -1,6 +1,30 @@
 # docker-nvidia-cuda-ffmpeg
 A docker container, with ffmpeg that supports scale_cuda among other things
 
+## Options
+
+To see the options for specific filters use:
+
+### scale_cuda
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h filter=scale_cuda
+```
+
+### overlay_cuda
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h filter=overlay_cuda
+```
+
+### hevc_nvenc
+
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=hevc_nvenc
+
+### hevc_nvenc
+
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=h264_nvenc
+
 ## Extras
 
 ### Mosaic
@@ -28,6 +52,7 @@ Just pass the environment variables (details below) and use a command of `mosaic
 | CONTAINER                | The output container                 | mpegts                                 | passed to -f ie `-f mpegts` or `-f flv`                                                                                              |
 | OUTPUT                   | The output destination               | udp :// 224.0.51.1 : 1234?pkt_size=188 | Where the data should go                                                                                                             |
 | BITRATE                  | The output bitrate                   | 8M                                     |                                                                                                                                      |
+| ENCODER                  | The encoder to use                   | hevc                                   | h264 or hevc                                                                                                                         |
 | RESOLUTION               | Select from a list of defaults       | FHD                                    | Select nHD,qHD,HD,HD+,FHD,DCI 2K,QHD,QHD+,4K UHD to auto set width and height                                                        |
 | WIDTH                    | The output mosaic width              | 1920                                   |                                                                                                                                      |
 | HEIGHT                   | The output mosaic height             | 1080                                   |                                                                                                                                      |
@@ -59,14 +84,13 @@ services:
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: all
       NVIDIA_REQUIRE_CUDA: cuda>=11.4
-      INPUT1: http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8
-      INPUT2: https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
-      INPUT3: https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8
+      INPUT1: https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8
+      INPUT2: https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8
+      INPUT3: http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl)
       INPUT4: https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8
     volumes:
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
-      - "/home/operations/mosaic:/mosaic:ro"
     command: mosaic
 
 ```
@@ -76,9 +100,9 @@ services:
 ```bash
 docker run -it --rm \
     -e GENCMD=1 \
-    -e INPUT1=http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8 \
-    -e INPUT2=https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8 \
-    -e INPUT3=https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8 \
+    -e INPUT1=https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8 \
+    -e INPUT2=https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8 \
+    -e INPUT3=http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl) \
     -e INPUT4=https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8 \
     ghcr.io/aperim/nvidia-cuda-ffmpeg:latest mosaic
 ```
