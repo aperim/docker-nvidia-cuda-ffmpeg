@@ -4,6 +4,9 @@ set -e
 CONTAINER="${CONTAINER:-mpegts}"
 OUTPUT="${OUTPUT:-udp://224.0.51.1:1234?pkt_size=188}"
 BITRATE="${BITRATE:-8M}"
+GENCMD="${GENCMD:-0}"
+FFMPEG_THREAD_QUEUE_SIZE="${FFMPEG_THREAD_QUEUE_SIZE:-512}"
+FFMPEG_CUDA_FORMAT="${FFMPEG_CUDA_FORMAT:-nv12}"
 
 ffmpeg=$(command -v ffmpeg)
 regex_url='(https?|ftp|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
@@ -143,6 +146,9 @@ elif [ "${MOSAIC}" == "9" ]; then
 	done
 fi
 
+LINE_BREAK=" "
+[ "${GENCMD}" != "0" ] && LINE_BREAK=" \\\\\\n\t"
+
 FFMPEG_COMMAND="-nostats -y -hide_banner -loglevel warning -err_detect ignore_err"
 
 INPUT=0
@@ -150,11 +156,11 @@ while [ $INPUT -le $MOSAIC ]
 do
 	RECONNECT="INPUT_RECONNECT_${INPUT}"
 	INPUT_ID="INPUT${INPUT}"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND} ${!RECONNECT}-thread_queue_size 4096 -hwaccel cuda -hwaccel_output_format nv12 -i ${!INPUT_ID}"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${!RECONNECT}-thread_queue_size ${FFMPEG_THREAD_QUEUE_SIZE} -hwaccel cuda -hwaccel_output_format ${FFMPEG_CUDA_FORMAT} -i ${!INPUT_ID}"
 	INPUT=$(( $INPUT + 1 ))
 done
 
-FFMPEG_COMMAND="${FFMPEG_COMMAND} -filter_complex \""
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-filter_complex \""
 INPUT=0
 while [ $INPUT -le $MOSAIC ]
 do
@@ -167,7 +173,7 @@ do
 	fi
 	PANELWIDTH="INPUT_${INPUT}_WIDTH"
 	PANELHEIGHT="INPUT_${INPUT}_HEIGHT"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND} [$INPUT:v]format=nv12,hwupload_cuda,scale_cuda=-2:x=${!PANELWIDTH}:y=${!PANELHEIGHT}:format=nv12${MOVIE_OPTS}[${PANEL_NAME}];"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:x=${!PANELWIDTH}:y=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
 	INPUT=$(( $INPUT + 1 ))
 done
 
@@ -183,7 +189,7 @@ do
 	PANEL_NAME="panel${INPUT}"
 	PANELX="INPUT_${INPUT}_X"
 	PANELY="INPUT_${INPUT}_Y"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND} [${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
 	INPUT=$(( $INPUT + 1 ))
 done
 PREVIOUS_PANEL_ID=$((${INPUT}-1))
@@ -191,10 +197,10 @@ PREVIOUS_PANEL="layer${PREVIOUS_PANEL_ID}"
 PANELX="INPUT_${INPUT}_X"
 PANELY="INPUT_${INPUT}_Y"
 PANEL_NAME="panel${INPUT}"
-FFMPEG_COMMAND="${FFMPEG_COMMAND} [${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
-FFMPEG_COMMAND="${FFMPEG_COMMAND} \""
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}\""
 
-FFMPEG_COMMAND="${FFMPEG_COMMAND} -map \"[final]\" -c:v h264_nvenc -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-map \"[final]\" -c:v h264_nvenc -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
 
 INPUT=1
 AUDIO_MAP=""
@@ -205,8 +211,14 @@ do
 	INPUT=$(( $INPUT + 1 ))
 done
 
-FFMPEG_COMMAND="${FFMPEG_COMMAND} ${AUDIO_MAP}"
-FFMPEG_COMMAND="${FFMPEG_COMMAND} -f ${CONTAINER} ${OUTPUT}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${AUDIO_MAP}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-f ${CONTAINER} ${OUTPUT}"
 
-echo >&2 "🎥 Starting mosaic"
-${ffmpeg} "$FFMPEG_COMMAND"
+
+if [ "${GENCMD}" != "0" ]; then
+	echo >&2 "🎥 ffmpeg command"
+	echo -e "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest ${FFMPEG_COMMAND}"
+else
+	echo >&2 "🎥 Starting mosaic"
+	${ffmpeg} "${FFMPEG_COMMAND}"
+fi
