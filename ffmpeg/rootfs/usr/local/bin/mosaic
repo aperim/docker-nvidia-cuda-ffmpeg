@@ -9,7 +9,7 @@ INPUT4="${INPUT4:-/etc/mosaic/1920x1080.png}"
 INPUT5="${INPUT5:-/etc/mosaic/1920x1080.png}"
 INPUT6="${INPUT6:-/etc/mosaic/1920x1080.png}"
 CONTAINER="${CONTAINER:-mpegts}"
-OUTPUT="${OUTPUT:-udp://224.0.51.255:1234?pkt_size=188}"
+OUTPUT="${OUTPUT:-udp://224.0.51.1:1234?pkt_size=188}"
 BITRATE="${BITRATE:-8M}"
 
 ffmpeg=$(command -v ffmpeg)
