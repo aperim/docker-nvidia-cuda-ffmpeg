@@ -249,5 +249,5 @@ if [ "${GENCMD}" != "0" ]; then
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${FFMPEG_COMMAND}"
 else
 	echo >&2 "🎥 Starting mosaic"
-	${ffmpeg} "${FFMPEG_COMMAND}"
+	set -- ${ffmpeg} "${FFMPEG_COMMAND}"
 fi
