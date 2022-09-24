@@ -19,11 +19,15 @@ docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CA
 
 ### hevc_nvenc
 
+```bash
 docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=hevc_nvenc
+```
 
-### hevc_nvenc
+### h264_nvenc
 
+```bash
 docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=h264_nvenc
+```
 
 ## Extras
 
@@ -50,7 +54,7 @@ Just pass the environment variables (details below) and use a command of `mosaic
 | INPUT8                   | The eight panel URL                  | "                                      | "                                                                                                                                    |
 | INPUT9                   | The night panel URL                  | "                                      | "                                                                                                                                    |
 | CONTAINER                | The output container                 | mpegts                                 | passed to -f ie `-f mpegts` or `-f flv`                                                                                              |
-| OUTPUT                   | The output destination               | udp :// 224.0.51.1 : 1234?pkt_size=188 | Where the data should go                                                                                                             |
+| OUTPUT                   | The output destination               | udp://224.0.51.1:1234?pkt_size=188     | Where the data should go                                                                                                             |
 | BITRATE                  | The output bitrate                   | 8M                                     |                                                                                                                                      |
 | ENCODER                  | The encoder to use                   | hevc                                   | h264 or hevc                                                                                                                         |
 | RESOLUTION               | Select from a list of defaults       | FHD                                    | Select nHD,qHD,HD,HD+,FHD,DCI 2K,QHD,QHD+,4K UHD to auto set width and height                                                        |
