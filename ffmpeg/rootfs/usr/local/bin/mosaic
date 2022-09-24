@@ -243,12 +243,12 @@ if [ "${GENCMD}" != "0" ]; then
 			ENVIRONMENT_VARIABLES="${ENVIRONMENT_VARIABLES}-e ${ENVIRONMENT_VARIABLE}=\"${!ENVIRONMENT_VARIABLE}\""
 		fi
 	done
-	echo >&2 "🎥 mosaic command"
+	echo >&2 "🖥️ mosaic command"
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \\\\\n\t${ENVIRONMENT_VARIABLES} \\\\\n\t${CONTAINER_IMAGE}:${CONTAINER_TAG} mosaic"
-	echo -e >&2 "\n🎥 ffmpeg command"
+	echo -e >&2 "\n⌨️ ffmpeg command"
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${FFMPEG_COMMAND}"
 else
 	echo >&2 "🎥 Starting mosaic"
-	set -- ${ffmpeg} ${FFMPEG_COMMAND}
-	"$@"
+	mosaic=(${ffmpeg} ${FFMPEG_COMMAND})
+	"${mosaic[@]}"
 fi
