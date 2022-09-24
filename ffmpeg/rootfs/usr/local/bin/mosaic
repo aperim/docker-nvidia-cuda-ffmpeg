@@ -4,9 +4,14 @@ set -e
 CONTAINER="${CONTAINER:-mpegts}"
 OUTPUT="${OUTPUT:-udp://224.0.51.1:1234?pkt_size=188}"
 BITRATE="${BITRATE:-8M}"
+ENCODER="${ENCODER:-hevc}"
 GENCMD="${GENCMD:-0}"
 FFMPEG_THREAD_QUEUE_SIZE="${FFMPEG_THREAD_QUEUE_SIZE:-512}"
 FFMPEG_CUDA_FORMAT="${FFMPEG_CUDA_FORMAT:-nv12}"
+FFMPEG_LOGLEVEL="${FFMPEG_LOGLEVEL:-warning}"
+
+CONTAINER_IMAGE=${CONTAINER_IMAGE:-ghcr.io/aperim/nvidia-cuda-ffmpeg}
+CONTAINER_TAG=${CONTAINER_TAG:-latest}
 
 ffmpeg=$(command -v ffmpeg)
 regex_url='(https?|ftp|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
@@ -147,9 +152,13 @@ elif [ "${MOSAIC}" == "9" ]; then
 fi
 
 LINE_BREAK=" "
-[ "${GENCMD}" != "0" ] && LINE_BREAK=" \\\\\\n\t"
+SPECIAL_ESCAPE=""
+if [ "${GENCMD}" != "0" ]; then
+	LINE_BREAK=" \\\\\\n\t"
+	SPECIAL_ESCAPE="\\"
+fi
 
-FFMPEG_COMMAND="-nostats -y -hide_banner -loglevel warning -err_detect ignore_err"
+FFMPEG_COMMAND="-nostats -y -hide_banner -loglevel ${FFMPEG_LOGLEVEL} -err_detect ignore_err"
 
 INPUT=0
 while [ $INPUT -le $MOSAIC ]
@@ -173,7 +182,7 @@ do
 	fi
 	PANELWIDTH="INPUT_${INPUT}_WIDTH"
 	PANELHEIGHT="INPUT_${INPUT}_HEIGHT"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:x=${!PANELWIDTH}:y=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:w=${!PANELWIDTH}:h=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
 	INPUT=$(( $INPUT + 1 ))
 done
 
@@ -200,24 +209,44 @@ PANEL_NAME="panel${INPUT}"
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}\""
 
-FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-map \"[final]\" -c:v h264_nvenc -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
+ENCODER_FFMPEG="hevc_nvenc"
+[ "${ENCODER}" == "h264" ] && ENCODER_FFMPEG="h264_nvenc"
 
-INPUT=1
-AUDIO_MAP=""
-while [ $INPUT -le $MOSAIC ]
-do
-	[ $INPUT -gt 1 ] && AUDIO_MAP="${AUDIO_MAP} "
-	AUDIO_MAP="${AUDIO_MAP}-map ${INPUT}:a:${INPUT}?"
-	INPUT=$(( $INPUT + 1 ))
-done
+if [ "${CONTAINER}" == "flv" ]; then
+	if [ "${ENCODER_FFMPEG}" == "hevc_nvenc" ]; then
+		echo >&2 "⚠️ flv container does not (yet?) support hevc/h265 resetting to h264"
+		ENCODER_FFMPEG="h264_nvenc"
+	fi
+	AUDIO_MAP="-map 1:a:1${SPECIAL_ESCAPE}?"
+else 
+	INPUT=1
+	AUDIO_MAP=""
+	while [ $INPUT -le $MOSAIC ]
+	do
+		[ $INPUT -gt 1 ] && AUDIO_MAP="${AUDIO_MAP} "
+		AUDIO_MAP="${AUDIO_MAP}-map ${INPUT}:a:${INPUT}${SPECIAL_ESCAPE}?"
+		INPUT=$(( $INPUT + 1 ))
+	done
+fi
 
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-map \"[final]\" -c:v ${ENCODER_FFMPEG} -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${AUDIO_MAP}"
-FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-f ${CONTAINER} ${OUTPUT}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-f ${CONTAINER} \"${OUTPUT}\""
 
 
 if [ "${GENCMD}" != "0" ]; then
-	echo >&2 "🎥 ffmpeg command"
-	echo -e "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest ${FFMPEG_COMMAND}"
+	ALL_VARS=("INPUT0" "INPUT1" "INPUT2" "INPUT3" "INPUT4" "INPUT5" "INPUT6" "INPUT7" "INPUT8" "INPUT9" "CONTAINER" "OUTPUT" "BITRATE" "WIDTH" "HEIGHT" "FFMPEG_THREAD_QUEUE_SIZE" "FFMPEG_CUDA_FORMAT")
+	ENVIRONMENT_VARIABLES=""
+	for ENVIRONMENT_VARIABLE in ${ALL_VARS[@]}; do
+		if [ ! -z ${!ENVIRONMENT_VARIABLE} ]; then
+			[ "${ENVIRONMENT_VARIABLES}" != "" ] && ENVIRONMENT_VARIABLES="${ENVIRONMENT_VARIABLES} \\\\\n\t"
+			ENVIRONMENT_VARIABLES="${ENVIRONMENT_VARIABLES}-e ${ENVIRONMENT_VARIABLE}=\"${!ENVIRONMENT_VARIABLE}\""
+		fi
+	done
+	echo >&2 "🎥 mosaic command"
+	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \\\\\n\t${ENVIRONMENT_VARIABLES} \\\\\n\t${CONTAINER_IMAGE}:${CONTAINER_TAG} mosaic"
+	echo -e >&2 "\n🎥 ffmpeg command"
+	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${FFMPEG_COMMAND}"
 else
 	echo >&2 "🎥 Starting mosaic"
 	${ffmpeg} "${FFMPEG_COMMAND}"

@@ -1,6 +1,30 @@
 # docker-nvidia-cuda-ffmpeg
 A docker container, with ffmpeg that supports scale_cuda among other things
 
+## Options
+
+To see the options for specific filters use:
+
+### scale_cuda
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h filter=scale_cuda
+```
+
+### overlay_cuda
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h filter=overlay_cuda
+```
+
+### hevc_nvenc
+
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=hevc_nvenc
+
+### hevc_nvenc
+
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=h264_nvenc
+
 ## Extras
 
 ### Mosaic
@@ -28,6 +52,7 @@ Just pass the environment variables (details below) and use a command of `mosaic
 | CONTAINER                | The output container                 | mpegts                                 | passed to -f ie `-f mpegts` or `-f flv`                                                                                              |
 | OUTPUT                   | The output destination               | udp :// 224.0.51.1 : 1234?pkt_size=188 | Where the data should go                                                                                                             |
 | BITRATE                  | The output bitrate                   | 8M                                     |                                                                                                                                      |
+| ENCODER                  | The encoder to use                   | hevc                                   | h264 or hevc                                                                                                                         |
 | RESOLUTION               | Select from a list of defaults       | FHD                                    | Select nHD,qHD,HD,HD+,FHD,DCI 2K,QHD,QHD+,4K UHD to auto set width and height                                                        |
 | WIDTH                    | The output mosaic width              | 1920                                   |                                                                                                                                      |
 | HEIGHT                   | The output mosaic height             | 1080                                   |                                                                                                                                      |
