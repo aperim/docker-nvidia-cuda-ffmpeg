@@ -79,7 +79,7 @@ do
 	if [ -z ${!INPUT_ID} ]; then declare ${INPUT_ID}="/etc/mosaic/1920x1080.png"; fi
 	RECONNECT="INPUT_RECONNECT_${INPUT}"
 	declare ${RECONNECT}=""
-	[[ "${!INPUT_ID}" =~ $regex_url ]] && declare ${RECONNECT}="-reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000 "
+	[[ "${!INPUT_ID}" =~ $regex_url ]] && declare ${RECONNECT}="-reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000"
 	INPUT=$(( $INPUT + 1 ))
 done
 
@@ -159,6 +159,7 @@ if [ "${GENCMD}" != "0" ]; then
 fi
 
 FFMPEG_COMMAND="-nostats -y -hide_banner -loglevel ${FFMPEG_LOGLEVEL} -err_detect ignore_err"
+COMMAND_ARRAY=(${ffmpeg} "-nostats" "-y" "-hide_banner" "-loglevel" ${FFMPEG_LOGLEVEL} "-err_detect" "ignore_err")
 
 INPUT=0
 while [ $INPUT -le $MOSAIC ]
@@ -166,10 +167,13 @@ do
 	RECONNECT="INPUT_RECONNECT_${INPUT}"
 	INPUT_ID="INPUT${INPUT}"
 	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${!RECONNECT}-thread_queue_size ${FFMPEG_THREAD_QUEUE_SIZE} -hwaccel cuda -hwaccel_output_format ${FFMPEG_CUDA_FORMAT} -i ${!INPUT_ID}"
+	COMMAND_ARRAY+=(${!RECONNECT} "-thread_queue_size" ${FFMPEG_THREAD_QUEUE_SIZE} "-hwaccel" "cuda" "-hwaccel_output_format" ${FFMPEG_CUDA_FORMAT} "-i" ${!INPUT_ID})
 	INPUT=$(( $INPUT + 1 ))
 done
 
-FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-filter_complex \""
+COMMAND_ARRAY+=("-filter_complex")
+FILTER_COMPLEX=""
+FILTER_COMPLEX_COMMAND=""
 INPUT=0
 while [ $INPUT -le $MOSAIC ]
 do
@@ -182,7 +186,8 @@ do
 	fi
 	PANELWIDTH="INPUT_${INPUT}_WIDTH"
 	PANELHEIGHT="INPUT_${INPUT}_HEIGHT"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:w=${!PANELWIDTH}:h=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
+	FILTER_COMPLEX="${FILTER_COMPLEX}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:w=${!PANELWIDTH}:h=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
+	FILTER_COMPLEX_COMMAND="${FILTER_COMPLEX_COMMAND}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:w=${!PANELWIDTH}:h=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
 	INPUT=$(( $INPUT + 1 ))
 done
 
@@ -198,7 +203,8 @@ do
 	PANEL_NAME="panel${INPUT}"
 	PANELX="INPUT_${INPUT}_X"
 	PANELY="INPUT_${INPUT}_Y"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
+	FILTER_COMPLEX="${FILTER_COMPLEX}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
+	FILTER_COMPLEX_COMMAND="${FILTER_COMPLEX_COMMAND}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
 	INPUT=$(( $INPUT + 1 ))
 done
 PREVIOUS_PANEL_ID=$((${INPUT}-1))
@@ -206,8 +212,12 @@ PREVIOUS_PANEL="layer${PREVIOUS_PANEL_ID}"
 PANELX="INPUT_${INPUT}_X"
 PANELY="INPUT_${INPUT}_Y"
 PANEL_NAME="panel${INPUT}"
-FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
-FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}\""
+FILTER_COMPLEX="${FILTER_COMPLEX}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
+FILTER_COMPLEX_COMMAND="${FILTER_COMPLEX_COMMAND}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
+FILTER_COMPLEX="${FILTER_COMPLEX}${LINE_BREAK}"
+
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-filter_complex \"${LINE_BREAK}${FILTER_COMPLEX}${LINE_BREAK}\""
+COMMAND_ARRAY+=(${FILTER_COMPLEX_COMMAND})
 
 ENCODER_FFMPEG="hevc_nvenc"
 [ "${ENCODER}" == "h264" ] && ENCODER_FFMPEG="h264_nvenc"
@@ -218,21 +228,26 @@ if [ "${CONTAINER}" == "flv" ]; then
 		ENCODER_FFMPEG="h264_nvenc"
 	fi
 	AUDIO_MAP="-map 1:a:1${SPECIAL_ESCAPE}?"
+	AUDIO_MAP_COMMANDS=("-map" "1:a:1?")
 else 
 	INPUT=1
 	AUDIO_MAP=""
+	AUDIO_MAP_COMMANDS=()
 	while [ $INPUT -le $MOSAIC ]
 	do
 		[ $INPUT -gt 1 ] && AUDIO_MAP="${AUDIO_MAP} "
 		AUDIO_MAP="${AUDIO_MAP}-map ${INPUT}:a:${INPUT}${SPECIAL_ESCAPE}?"
+		AUDIO_MAP_COMMANDS=("-map" "${INPUT}:a:${INPUT}?")
 		INPUT=$(( $INPUT + 1 ))
 	done
 fi
 
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-map \"[final]\" -c:v ${ENCODER_FFMPEG} -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
+COMMAND_ARRAY+=("-map" "[final]" "-c:v" ${ENCODER_FFMPEG} "-preset" "fast" "-tune" "ull" "-zerolatency" "1" "-b:v" ${BITRATE})
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${AUDIO_MAP}"
+COMMAND_ARRAY+=(${AUDIO_MAP_COMMANDS[@]})
 FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-f ${CONTAINER} \"${OUTPUT}\""
-
+COMMAND_ARRAY+=("-f" ${CONTAINER} ${OUTPUT})
 
 if [ "${GENCMD}" != "0" ]; then
 	ALL_VARS=("INPUT0" "INPUT1" "INPUT2" "INPUT3" "INPUT4" "INPUT5" "INPUT6" "INPUT7" "INPUT8" "INPUT9" "CONTAINER" "OUTPUT" "BITRATE" "ENCODER" "WIDTH" "HEIGHT" "FFMPEG_THREAD_QUEUE_SIZE" "FFMPEG_CUDA_FORMAT")
@@ -247,8 +262,8 @@ if [ "${GENCMD}" != "0" ]; then
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \\\\\n\t${ENVIRONMENT_VARIABLES} \\\\\n\t${CONTAINER_IMAGE}:${CONTAINER_TAG} mosaic"
 	echo -e >&2 "\n⌨️ ffmpeg command"
 	echo -e >&2 "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${FFMPEG_COMMAND}"
+	echo -e "${COMMAND_ARRAY[@]}"
 else
 	echo >&2 "🎥 Starting mosaic"
-	mosaic=(${ffmpeg} ${FFMPEG_COMMAND})
-	"${mosaic[@]}"
+	"${COMMAND_ARRAY[@]}"
 fi
