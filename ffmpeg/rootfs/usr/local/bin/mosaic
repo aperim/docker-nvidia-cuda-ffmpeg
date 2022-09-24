@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+set -e
+
+CONTAINER="${CONTAINER:-mpegts}"
+OUTPUT="${OUTPUT:-udp://224.0.51.1:1234?pkt_size=188}"
+BITRATE="${BITRATE:-8M}"
+GENCMD="${GENCMD:-0}"
+FFMPEG_THREAD_QUEUE_SIZE="${FFMPEG_THREAD_QUEUE_SIZE:-512}"
+FFMPEG_CUDA_FORMAT="${FFMPEG_CUDA_FORMAT:-nv12}"
+
+ffmpeg=$(command -v ffmpeg)
+regex_url='(https?|ftp|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
+
+if [ "${RESOLUTION}" == "nHD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=640
+	HEIGHT=360
+elif [ "${RESOLUTION}" == "qHD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=960
+	HEIGHT=540
+elif [ "${RESOLUTION}" == "HD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=1280
+	HEIGHT=720
+elif [ "${RESOLUTION}" == "HD+" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=1600
+	HEIGHT=900
+elif [ "${RESOLUTION}" == "FHD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=1920
+	HEIGHT=1080
+elif [ "${RESOLUTION}" == "DCI 2K" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=2048
+	HEIGHT=1080
+elif [ "${RESOLUTION}" == "QHD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=2560
+	HEIGHT=1440
+elif [ "${RESOLUTION}" == "QHD+" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=3200
+	HEIGHT=1800
+elif [ "${RESOLUTION}" == "4K UHD" ]; then
+	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi
+	WIDTH=3840
+	HEIGHT=2160
+else
+	WIDTH="${WIDTH:-1920}"
+	HEIGHT="${HEIGHT:-1080}"
+fi
+
+MOSAIC=4
+[ ! -z $INPUT5 ] && MOSAIC=6
+[ ! -z $INPUT6 ] && MOSAIC=6
+[ ! -z $INPUT7 ] && MOSAIC=9
+[ ! -z $INPUT8 ] && MOSAIC=9
+[ ! -z $INPUT9 ] && MOSAIC=9
+
+INPUT0="${INPUT0:-/etc/mosaic/1920x1080-black.png}"
+INPUT_0_X=0
+INPUT_0_Y=0
+INPUT_0_WIDTH=${WIDTH}
+INPUT_0_HEIGHT=${HEIGHT}
+INPUT_RECONNECT_0=""
+[[ $INPUT0 =~ $regex_url ]] && INPUT_RECONNECT_0="-reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000"
+
+INPUT=1
+while [ $INPUT -le $MOSAIC ]
+do
+	INPUT_ID="INPUT${INPUT}"
+	if [ -z ${!INPUT_ID} ]; then declare ${INPUT_ID}="/etc/mosaic/1920x1080.png"; fi
+	RECONNECT="INPUT_RECONNECT_${INPUT}"
+	declare ${RECONNECT}=""
+	[[ "${!INPUT_ID}" =~ $regex_url ]] && declare ${RECONNECT}="-reconnect_on_network_error 1 -reconnect_on_http_error 1 -reconnect_streamed 1 -reconnect_delay_max 2000 "
+	INPUT=$(( $INPUT + 1 ))
+done
+
+if [ "${MOSAIC}" == "4" ]; then
+	ALL_WIDTH=$((${WIDTH}/2))
+	ALL_HEIGHT=$((${HEIGHT}/2))
+	INPUT=1
+	while [ $INPUT -le 4 ]
+	do
+		declare INPUT_${INPUT}_WIDTH=${ALL_WIDTH}
+		declare INPUT_${INPUT}_HEIGHT=${ALL_HEIGHT}
+		INPUT=$(( $INPUT + 1 ))
+	done
+	INPUT_1_X=0
+	INPUT_1_Y=0
+	INPUT_2_X=${ALL_WIDTH}
+	INPUT_2_Y=0
+	INPUT_3_X=0
+	INPUT_3_Y=${ALL_HEIGHT}
+	INPUT_4_X=${ALL_WIDTH}
+	INPUT_4_Y=${ALL_HEIGHT}
+elif [ "${MOSAIC}" == "6" ]; then
+	MOST_WIDTH=$((${WIDTH}/3))
+	MOST_HEIGHT=$((${HEIGHT}/3))
+	INPUT_1_WIDTH=$((MOST_WIDTH*2))
+	INPUT_1_HEIGHT=$((MOST_HEIGHT*2))
+	INPUT=2
+	while [ $INPUT -le 6 ]
+	do
+		declare INPUT_${INPUT}_WIDTH=${MOST_WIDTH}
+		declare INPUT_${INPUT}_HEIGHT=${MOST_HEIGHT}
+		INPUT=$(( $INPUT + 1 ))
+	done
+	INPUT_1_X=${MOST_WIDTH}
+	INPUT_1_Y=0
+	INPUT_2_X=0
+	INPUT_2_Y=0
+	INPUT_3_X=0
+	INPUT_3_Y=${MOST_HEIGHT}
+	INPUT_4_X=0
+	INPUT_4_Y=$((${MOST_HEIGHT}*2))
+	INPUT_5_X=${MOST_WIDTH}
+	INPUT_5_Y=$((${MOST_HEIGHT}*2))
+	INPUT_6_X=$((${MOST_WIDTH}*2))
+	INPUT_6_Y=$((${MOST_HEIGHT}*2))
+elif [ "${MOSAIC}" == "9" ]; then
+	ALL_WIDTH=$((${WIDTH}/3))
+	ALL_HEIGHT=$((${HEIGHT}/3))
+	INPUT=1
+	while [ $INPUT -le 9 ]
+	do
+		INPUT_${INPUT}_WIDTH=${ALL_WIDTH}
+		INPUT_${INPUT}_HEIGHT=${ALL_HEIGHT}
+		INPUT=$(( $INPUT + 1 ))
+	done
+	X=0
+	INPUT=1
+	while [ $X -le 2 ]
+	do
+		Y=0
+		while [ $Y -le 2 ]
+		do
+			INPUT_${INPUT}_X=$((${X}*${ALL_WIDTH}))
+			INPUT_${INPUT}_Y=$((${Y}*${ALL_HEIGHT}))
+			INPUT=$(( $INPUT + 1 ))
+			Y=$(( $Y + 1 ))
+		done
+		X=$(( $X + 1 ))
+	done
+fi
+
+LINE_BREAK=" "
+[ "${GENCMD}" != "0" ] && LINE_BREAK=" \\\\\\n\t"
+
+FFMPEG_COMMAND="-nostats -y -hide_banner -loglevel warning -err_detect ignore_err"
+
+INPUT=0
+while [ $INPUT -le $MOSAIC ]
+do
+	RECONNECT="INPUT_RECONNECT_${INPUT}"
+	INPUT_ID="INPUT${INPUT}"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${!RECONNECT}-thread_queue_size ${FFMPEG_THREAD_QUEUE_SIZE} -hwaccel cuda -hwaccel_output_format ${FFMPEG_CUDA_FORMAT} -i ${!INPUT_ID}"
+	INPUT=$(( $INPUT + 1 ))
+done
+
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-filter_complex \""
+INPUT=0
+while [ $INPUT -le $MOSAIC ]
+do
+	if [ "$INPUT" == "0" ]; then
+		PANEL_NAME="base"
+		MOVIE_OPTS=""
+	else
+		PANEL_NAME="panel${INPUT}"
+		MOVIE_OPTS=",fps=24,setpts=PTS-STARTPTS"
+	fi
+	PANELWIDTH="INPUT_${INPUT}_WIDTH"
+	PANELHEIGHT="INPUT_${INPUT}_HEIGHT"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[$INPUT:v]format=${FFMPEG_CUDA_FORMAT},hwupload_cuda,scale_cuda=-2:x=${!PANELWIDTH}:y=${!PANELHEIGHT}:format=${FFMPEG_CUDA_FORMAT}${MOVIE_OPTS}[${PANEL_NAME}];"
+	INPUT=$(( $INPUT + 1 ))
+done
+
+INPUT=1
+while [ $INPUT -le $(($MOSAIC-1)) ]
+do
+	if [ "$INPUT" == "1" ]; then
+		PREVIOUS_PANEL="base"
+	else
+		PREVIOUS_PANEL_ID=$((${INPUT}-1))
+		PREVIOUS_PANEL="layer${PREVIOUS_PANEL_ID}"
+	fi
+	PANEL_NAME="panel${INPUT}"
+	PANELX="INPUT_${INPUT}_X"
+	PANELY="INPUT_${INPUT}_Y"
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[layer${INPUT}];"
+	INPUT=$(( $INPUT + 1 ))
+done
+PREVIOUS_PANEL_ID=$((${INPUT}-1))
+PREVIOUS_PANEL="layer${PREVIOUS_PANEL_ID}"
+PANELX="INPUT_${INPUT}_X"
+PANELY="INPUT_${INPUT}_Y"
+PANEL_NAME="panel${INPUT}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}[${PREVIOUS_PANEL}][${PANEL_NAME}]overlay_cuda=shortest=0:x=${!PANELX}:y=${!PANELY}[final]"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}\""
+
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-map \"[final]\" -c:v h264_nvenc -preset fast -tune ull -zerolatency 1 -b:v ${BITRATE}"
+
+INPUT=1
+AUDIO_MAP=""
+while [ $INPUT -le $MOSAIC ]
+do
+	[ $INPUT -gt 1 ] && AUDIO_MAP="${AUDIO_MAP} "
+	AUDIO_MAP="${AUDIO_MAP}-map ${INPUT}:a:${INPUT}?"
+	INPUT=$(( $INPUT + 1 ))
+done
+
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${AUDIO_MAP}"
+FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}-f ${CONTAINER} ${OUTPUT}"
+
+
+if [ "${GENCMD}" != "0" ]; then
+	echo >&2 "🎥 ffmpeg command"
+	echo -e "docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest ${FFMPEG_COMMAND}"
+else
+	echo >&2 "🎥 Starting mosaic"
+	${ffmpeg} "${FFMPEG_COMMAND}"
+fi
