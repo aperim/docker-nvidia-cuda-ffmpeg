@@ -108,7 +108,7 @@ docker run -it --rm \
     -e GENCMD=1 \
     -e INPUT1=https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8 \
     -e INPUT2=https://d3rlna7iyyu8wu.cloudfront.net/skip_armstrong/skip_armstrong_multichannel_subs.m3u8 \
-    -e INPUT3=http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest(format=m3u8-aapl) \
+    -e INPUT3=http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest\(format=m3u8-aapl\) \
     -e INPUT4=https://devimages.apple.com.edgekey.net/iphone/samples/bipbop/bipbopall.m3u8 \
     ghcr.io/aperim/nvidia-cuda-ffmpeg:latest mosaic
 ```
