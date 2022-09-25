@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -e
+
+usage () {
+	echo >&2 "Camera Transcode"
+	echo -e >&2 "\tUsage - pass the camera url and the destination"
+	echo -e >&2 "\t\t$0 <camera_url> <destination_url> [bitrate] [encoder] [framerate]"
+	echo -e >&2 "\t\t\tcamera_url The url of your camera - with url encoded usernmame/password if needed"
+	echo -e >&2 "\t\t\tdestination_url The destination URL"
+	echo -e >&2 "\t\t\tbitrate (optional) The output bitrate [default 8M]"
+	echo -e >&2 "\t\t\tencoder (optional) Either h264 or hevc [default hevc]"
+	echo -e >&2 "\t\t\tframerate (optional) The frame rate [no default]"
+	echo -e >&2 "\tExample"
+	echo -e >&2 "\t\t$0 rtsp://admin@passw0rd:192.0.2.1/main/0 rtsp://streaming.server.example/camera1 16M h264 24"
+	echo -e >&2 "\tNote"
+	echo -e >&2 "\t\tThe output url must be RTSP. It will be using TCP"
+	exit 1
+}
+
+ffmpeg=$(command -v ffmpeg)
+
+if [ -z $1 ]; then usage; fi
+if [ -z $2 ]; then usage; fi
+
+CAMERA_URL=$1
+DESTINATION_URL=$2
+BITRATE=${3:-8M}
+ENCODER=${4:-hevc}
+if [ ! -z $5 ]; then
+	FRAME_RATE=("-filter:v" "fps=fps=30")
+else
+	FRAME_RATE=()
+fi
+
+[ "${ENCODER}" == "hevc" ] && ENCODER_FFMPEG="hecv_nvenc"
+[ "${ENCODER}" == "h264" ] && ENCODER_FFMPEG="h264_nvenc"
+if [ -z ${ENCODER_FFMPEG} ]; then
+	echo >&2 "Error, invalid encoder provided..."
+	echo >&2 "Check usage"
+	usage
+fi
+
+USE_TCP=${USE_TCP:-1}
+if [ "${USE_TCP}" != "0" ]; then
+	FFMPEG_RTSP_TCP=("-rtsp_transport" "tcp")
+else
+	FFMPEG_RTSP_TCP=("-rtsp_transport" "tcp")
+fi
+
+FFMPEG_LOGLEVEL="${FFMPEG_LOGLEVEL:-warning}"
+FFMPEG_EXTRA_HW_FRAMES="${FFMPEG_EXTRA_HW_FRAMES:-8}"
+COMMAND_ARRAY=("-nostats" "-y" "-hide_banner" "-loglevel" ${FFMPEG_LOGLEVEL} "-err_detect" "ignore_err" "-hwaccel" "cuda" "-hwaccel_output_format" "cuda" "-extra_hw_frames" ${FFMPEG_EXTRA_HW_FRAMES} ${FFMPEG_RTSP_TCP[@]} "-i" ${CAMERA_URL} "-map" "0" "-c:v" ${ENCODER_FFMPEG} ${FRAME_RATE[@]} "-b:v" $BITRATE  "-c:a" "copy" "-c:s" "copy" "-f" "rtsp" ${FFMPEG_RTSP_TCP[@]} ${DESTINATION_URL})
+
+if [ "${GENCMD}" != "0" ]; then
+	CONTAINER_IMAGE=${CONTAINER_IMAGE:-ghcr.io/aperim/nvidia-cuda-ffmpeg}
+	CONTAINER_TAG=${CONTAINER_TAG:-latest}
+	echo -e >&2 "⌨️ ffmpeg command"
+	echo -e >&2 "docker run -it --rm --gpus=all --add-host=host.docker.internal:host-gateway \\\\\n\t-e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ${CONTAINER_IMAGE}:${CONTAINER_TAG} \\\\\n\t${COMMAND_ARRAY[@]}"
+else
+	echo >&2 "🎥 Starting camera transcode"
+	COMMAND_ARRAY=(${ffmpeg} ${COMMAND_ARRAY[@]})
+	"${COMMAND_ARRAY[@]}"
+fi
