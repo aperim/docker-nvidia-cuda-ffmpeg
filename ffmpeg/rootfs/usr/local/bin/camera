@@ -51,6 +51,7 @@ FFMPEG_LOGLEVEL="${FFMPEG_LOGLEVEL:-warning}"
 FFMPEG_EXTRA_HW_FRAMES="${FFMPEG_EXTRA_HW_FRAMES:-8}"
 COMMAND_ARRAY=("-nostats" "-y" "-hide_banner" "-loglevel" ${FFMPEG_LOGLEVEL} "-err_detect" "ignore_err" "-hwaccel" "cuda" "-hwaccel_output_format" "cuda" "-extra_hw_frames" ${FFMPEG_EXTRA_HW_FRAMES} ${FFMPEG_RTSP_TCP[@]} "-i" ${CAMERA_URL} "-map" "0" "-c:v" ${ENCODER_FFMPEG} ${FRAME_RATE[@]} "-b:v" $BITRATE  "-c:a" "copy" "-c:s" "copy" "-f" "rtsp" ${FFMPEG_RTSP_TCP[@]} ${DESTINATION_URL})
 
+GENCMD=${GENCMD:-0}
 if [ "${GENCMD}" != "0" ]; then
 	CONTAINER_IMAGE=${CONTAINER_IMAGE:-ghcr.io/aperim/nvidia-cuda-ffmpeg}
 	CONTAINER_TAG=${CONTAINER_TAG:-latest}
