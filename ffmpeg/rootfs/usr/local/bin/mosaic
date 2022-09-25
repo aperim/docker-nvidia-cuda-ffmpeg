@@ -15,7 +15,7 @@ CONTAINER_IMAGE=${CONTAINER_IMAGE:-ghcr.io/aperim/nvidia-cuda-ffmpeg}
 CONTAINER_TAG=${CONTAINER_TAG:-latest}
 
 ffmpeg=$(command -v ffmpeg)
-regex_url='(https?|ftp|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
+regex_url='(https?|ftp|rtsp|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
 
 if [ "${RESOLUTION}" == "nHD" ]; then
 	if [ ! -z $WIDTH ] || [ ! -z $HEIGHT ]; then echo >&2 "☠️ Resolution supplied. Overriding supplied width/height."; fi

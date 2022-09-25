@@ -31,6 +31,12 @@ docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CA
 
 ## Extras
 
+[**Mosaic**](#Mosaic)
+Generate a video mosaic using overlays. Easily create 4, 6 and 9 input mosaics.
+
+[**Camera**](#Camera)
+Shortcut for transcoding rtsp camera streams.
+
 ### Mosaic
 
 Generate a 4, 6 or 9 panel mosaic / overlay.
@@ -158,4 +164,28 @@ docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CA
         -map "[final]" -c:v hevc_nvenc -preset fast -tune ull -zerolatency 1 -b:v 8M \
         -map 1:a:1\? -map 2:a:2\? -map 3:a:3\? -map 4:a:4\? \
         -f mpegts "udp://224.0.51.1:1234?pkt_size=188"
+```
+
+### Camera
+
+Using command, pass a source and destination and the script will generate the ffmpeg command to transcode and send your camera feed.
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest camera \
+	rtsp://user:pass@192.0.2.1/unicast/c1/s0/live rtsp://host.docker.internal:8554/camera1 16M h264 24
+```
+
+```text
+Camera Transcode
+        Usage - pass the camera url and the destination
+                camera <camera_url> <destination_url> [bitrate] [encoder] [framerate]
+                        camera_url The url of your camera - with url encoded usernmame/password if needed
+                        destination_url The destination URL
+                        bitrate (optional) The output bitrate [default 8M]
+                        encoder (optional) Either h264 or hevc [default hevc]
+                        framerate (optional) The frame rate [no default]
+        Example
+                ./ffmpeg/rootfs/usr/local/bin/camera rtsp://admin@passw0rd:192.0.2.1/main/0 rtsp://streaming.server.example/camera1 16M h264 24
+        Note
+                The output url must be RTSP. It will be using TCP
 ```
