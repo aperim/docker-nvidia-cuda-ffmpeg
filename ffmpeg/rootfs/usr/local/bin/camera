@@ -27,7 +27,7 @@ DESTINATION_URL=$2
 BITRATE=${3:-8M}
 ENCODER=${4:-hevc}
 if [ ! -z $5 ]; then
-	FRAME_RATE=("-filter:v" "fps=fps=30")
+	FRAME_RATE=("-filter:v" "fps=fps=$5")
 else
 	FRAME_RATE=()
 fi
