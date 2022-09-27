@@ -167,8 +167,8 @@ while [ $INPUT -le $MOSAIC ]
 do
 	RECONNECT="INPUT_RECONNECT_${INPUT}"
 	INPUT_ID="INPUT${INPUT}"
-	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${!RECONNECT}-thread_queue_size ${FFMPEG_THREAD_QUEUE_SIZE} -hwaccel cuda -hwaccel_output_format ${FFMPEG_CUDA_FORMAT} -i ${!INPUT_ID}"
-	COMMAND_ARRAY+=(${!RECONNECT} "-thread_queue_size" ${FFMPEG_THREAD_QUEUE_SIZE} "-hwaccel" "cuda" "-hwaccel_output_format" ${FFMPEG_CUDA_FORMAT} "-i" ${!INPUT_ID})
+	FFMPEG_COMMAND="${FFMPEG_COMMAND}${LINE_BREAK}${!RECONNECT}-thread_queue_size ${FFMPEG_THREAD_QUEUE_SIZE} -hwaccel cuda -hwaccel_output_format ${FFMPEG_CUDA_FORMAT} -probesize 100M -analyzeduration 250M -fflags nobuffer -re -i ${!INPUT_ID}"
+	COMMAND_ARRAY+=(${!RECONNECT} "-thread_queue_size" ${FFMPEG_THREAD_QUEUE_SIZE} "-hwaccel" "cuda" "-hwaccel_output_format" ${FFMPEG_CUDA_FORMAT} "-probesize" "100M" "-analyzeduration" "250M" "-fflags" "nobuffer" "-re" "-i" ${!INPUT_ID})
 	INPUT=$(( $INPUT + 1 ))
 done
 
