@@ -82,7 +82,7 @@ RUN apt-get update && \
             wget \
             yasm
 
-ARG FFMPEG_VERSION=5.1.1
+ARG FFMPEG_VERSION=5.1.2
 
 RUN mkdir -p /opt/src/nv-codec-headers /opt/src/ffmpeg && \
     git clone --depth 1 https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /opt/src/nv-codec-headers && \
