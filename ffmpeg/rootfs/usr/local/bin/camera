@@ -12,8 +12,6 @@ usage () {
 	echo -e >&2 "\t\t\tframerate (optional) The frame rate [no default]"
 	echo -e >&2 "\tExample"
 	echo -e >&2 "\t\t$0 rtsp://admin@passw0rd:192.0.2.1/main/0 rtsp://streaming.server.example/camera1 16M h264 24"
-	echo -e >&2 "\tNote"
-	echo -e >&2 "\t\tThe output url must be RTSP. It will be using TCP"
 	exit 1
 }
 
