@@ -18,13 +18,14 @@ usage () {
 }
 
 ffmpeg=$(command -v ffmpeg)
+regex_url='(rtsps?)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]'
 
 if [ -z $1 ]; then usage; fi
 if [ -z $2 ]; then usage; fi
 
 CAMERA_URL=$1
 DESTINATION_URL=$2
-BITRATE=${3:-8M}
+BITRATE=${3:-16384k}
 ENCODER=${4:-hevc}
 if [ ! -z $5 ]; then
 	FRAME_RATE=("-filter:v" "fps=fps=$5")
@@ -40,16 +41,37 @@ if [ -z ${ENCODER_FFMPEG} ]; then
 	usage
 fi
 
+if [ ! -z ${FFMPEG_EXTRA_HW_FRAMES} ]; then
+	COMMAND_FFMPEG_EXTRA_HW_FRAMES=("-extra_hw_frames" ${FFMPEG_EXTRA_HW_FRAMES})
+else
+	COMMAND_FFMPEG_EXTRA_HW_FRAMES=()
+fi
+
 USE_TCP=${USE_TCP:-1}
 if [ "${USE_TCP}" != "0" ]; then
 	FFMPEG_RTSP_TCP=("-rtsp_transport" "tcp")
 else
-	FFMPEG_RTSP_TCP=("-rtsp_transport" "tcp")
+	FFMPEG_RTSP_TCP=()
+fi
+
+if [[ "${DESTINATION_URL}" =~ $regex_url ]]; then
+	FFMPEG_COMMAND_CONTAINER="rtsp"
+	COMMAND_FFMPEG_OUTPUT_RTSP_TCP=(${FFMPEG_RTSP_TCP[@]})
+else
+	FFMPEG_COMMAND_CONTAINER=${CONTAINER:-flv}
+	COMMAND_FFMPEG_OUTPUT_RTSP_TCP=()
+fi
+
+INCLUDE_AUDIO=${INCLUDE_AUDIO:-0}
+if [ "${INCLUDE_AUDIO}" != "0" ]; then
+	FFMPEG_COMMAND_AUDIO=("-map" "1:0" "-codec:a" "aac")
+else
+	FFMPEG_COMMAND_AUDIO=("-map" "1:0" "-codec:a" "aac")
 fi
 
 FFMPEG_LOGLEVEL="${FFMPEG_LOGLEVEL:-warning}"
 FFMPEG_EXTRA_HW_FRAMES="${FFMPEG_EXTRA_HW_FRAMES:-8}"
-COMMAND_ARRAY=("-nostats" "-y" "-hide_banner" "-loglevel" ${FFMPEG_LOGLEVEL} "-err_detect" "ignore_err" "-hwaccel" "cuda" "-hwaccel_output_format" "cuda" "-extra_hw_frames" ${FFMPEG_EXTRA_HW_FRAMES} ${FFMPEG_RTSP_TCP[@]} "-i" ${CAMERA_URL} "-map" "0" "-c:v" ${ENCODER_FFMPEG} ${FRAME_RATE[@]} "-b:v" $BITRATE  "-c:a" "copy" "-c:s" "copy" "-f" "rtsp" ${FFMPEG_RTSP_TCP[@]} ${DESTINATION_URL})
+COMMAND_ARRAY=("-hide_banner" "-loglevel" ${FFMPEG_LOGLEVEL} "-err_detect" "ignore_err" "-y" "-hwaccel" "cuda" "-hwaccel_output_format" "nv12" "-fflags" "+genpts" "-thread_queue_size" "512" "-timeout" "5000000" ${COMMAND_FFMPEG_EXTRA_HW_FRAMES[@]} ${FFMPEG_RTSP_TCP[@]} "-i" ${CAMERA_URL} "-dn" "-sn" "-map" "0:0" "-codec:v" "h264_nvenc" ${FRAME_RATE[@]} "-preset:v" "medium" "-b:v" ${BITRATE} "-maxrate" ${BITRATE} "-bufsize" ${BITRATE} "-pix_fmt" "yuv420p" "-g" "48" ${FFMPEG_COMMAND_AUDIO[@]} "-metadata" "title=\"${CAMERA_URL}\"" "-metadata" "service_provider=aperim-ffmpeg" "-f" ${FFMPEG_COMMAND_CONTAINER} ${COMMAND_FFMPEG_OUTPUT_RTSP_TCP[@]} ${DESTINATION_URL})
 
 GENCMD=${GENCMD:-0}
 if [ "${GENCMD}" != "0" ]; then
