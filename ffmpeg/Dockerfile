@@ -191,6 +191,10 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg
 
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
+    sudo=1.9.9-1ubuntu2 && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
 
 COPY --from=builder \
