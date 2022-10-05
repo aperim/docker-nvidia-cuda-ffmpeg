@@ -404,6 +404,9 @@ COPY --from=builder \
 
 COPY ./ffmpeg/rootfs /
 
+ENV UID=1000
+ENV GID=1000
+
 RUN /usr/bin/ffmpeg -version
 
 ARG BUILD_DESCRIPTION="nvidia cuda ffmpeg"
