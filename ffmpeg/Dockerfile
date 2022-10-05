@@ -189,9 +189,8 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         --disabled-password \
         --disabled-login \
         ffmpeg && \
-    chown -R ffmpeg:ffmpeg /etc/ffmpeg
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
+    chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
     sudo=1.9.9-1ubuntu2 && \
     rm -rf /var/lib/apt/lists/*
 
