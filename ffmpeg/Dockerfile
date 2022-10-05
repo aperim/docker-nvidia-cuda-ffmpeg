@@ -177,7 +177,19 @@ RUN cd /opt/src/ffmpeg && \
 FROM nvidia/cuda:${RUNIMAGE}
 
 RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
-    ldconfig
+    ldconfig && \
+    mkdir -p /etc/ffmpeg && \
+    addgroup --gid 1000 ffmpeg && \
+    adduser --home /etc/ffmpeg \
+        --shell /usr/sbin/nologin \
+        --no-create-home \
+        --uid 1000 \
+        --gid 1000 \
+        --gecos ffmpeg,ffmpeg,,,ffmpeg \
+        --disabled-password \
+        --disabled-login \
+        ffmpeg && \
+    chown -R ffmpeg:ffmpeg /etc/ffmpeg
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
 

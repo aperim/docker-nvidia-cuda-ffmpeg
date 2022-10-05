@@ -1,12 +1,30 @@
 #!/usr/bin/env bash
 set -e
 
-echo >&2 "🆗 Ready"
+if [[ -z "${UID}" ]]; then
+  UID=1000
+else
+  usermod -u ${UID} ffmpeg
+fi
+
+if [[ -z "${GID}" ]]; then
+  GID=1000
+else
+  groupmod -g ${GID} ffmpeg
+fi
+
+chown -R ${UID}:${GID} /etc/ffmpeg
+
 if [[ -x "/usr/bin/ffmpeg" ]]; then
+  echo >&2 "🆗 Ready"
   # first arg is `-f` or `--some-option`
   if [ "${1#-}" != "$1" ]; then
-    set -- /usr/bin/ffmpeg "$@"
+    echo >&2 "📺 Starting ffmpeg with settings \"$@\""
+    sudo -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@"
+  else
+    echo >&2 "📺 Executing \"$@\""
+    sudo -H -u ffmpeg -- bash -c "$@" 
   fi
-
-  "$@"
-fi 
+else
+  echo >&2 "🛑 No ffmpeg executable"
+fi
