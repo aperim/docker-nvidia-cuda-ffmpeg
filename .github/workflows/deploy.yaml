@@ -62,7 +62,7 @@ jobs:
       matrix:
         version: [11.8.0, 11.7.1, 11.7.0]
         ffmpeg: [5.1.2]
-        os: [ubuntu22.04, ubuntu20.04]
+        os: [ubuntu22.04]
     # yamllint disable rule:line-length
     name: 👷 Build & Deploy CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
     needs:
@@ -96,13 +96,14 @@ jobs:
             prefix=${{ matrix.version }}-${{ matrix.os }}-
             suffix=
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
+            type=schedule,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=semver,pattern={{version}},prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=semver,pattern={{major}},prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=sha,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=raw,value=latest,enable=${{ matrix.version == "11.8.0" && matrix.os == "ubuntu22.04" && matrix.ffmpeg == "5.1.2" }}
           # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache

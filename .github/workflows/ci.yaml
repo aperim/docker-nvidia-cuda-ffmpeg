@@ -60,7 +60,7 @@ jobs:
       matrix:
         version: [11.8.0, 11.7.1, 11.7.0]
         ffmpeg: [5.1.2]
-        os: [ubuntu22.04, ubuntu20.04]
+        os: [ubuntu22.04]
     # yamllint disable rule:line-length
     name: 👷 Build CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
     needs:
