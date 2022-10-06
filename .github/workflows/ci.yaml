@@ -26,7 +26,6 @@ jobs:
       name: ${{ steps.information.outputs.name }}
       version: ${{ steps.information.outputs.version }}
       build_date: ${{ steps.information.outputs.build_date }}
-      api_url: ${{ steps.information.outputs.api_url }}
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v3
@@ -47,16 +46,23 @@ jobs:
               environment="beta"
             fi
           fi
+          ffmpeg_version="$(curl -sL https://api.github.com/repos/mautic/mautic/releases/latest | jq -r '.tag_name')"
 
           echo "::set-output name=environment::${environment}"
           echo "::set-output name=version::${version}"
 
-          echo "::set-output name=name::CUDA ffmpeg ${environment}"
-          echo "::set-output name=description::CUDA ffmpeg ${environment} in a container"
+          echo "::set-output name=name::NVIDIA® CUDA® Toolkit"
+          echo "::set-output name=description::NVIDIA® CUDA® Toolkit"
         # yamllint enable rule:line-length
 
   build:
-    name: 👷 Build
+    strategy:
+      matrix:
+        version: [11.8.0, 11.7.1, 11.7.0]
+        ffmpeg: [5.1.2]
+        os: [ubuntu22.04]
+    # yamllint disable rule:line-length
+    name: 👷 Build CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
     needs:
       - information
     runs-on: ubuntu-latest
@@ -82,12 +88,14 @@ jobs:
             aperimau/nvidia-cuda-ffmpeg
             ghcr.io/aperim/nvidia-cuda-ffmpeg
           # generate Docker tags based on the following events/attributes
+          # yamllint disable rule:line-length
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha
-            type=edge,enable=true,priority=700,prefix=,suffix=,branch=$repo.default_branch
+            type=schedule,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=sha,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
+          # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache
         id: cache
@@ -95,9 +103,11 @@ jobs:
         with:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
-          key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+          # yamllint disable rule:line-length
+          key: ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}-${{ github.sha }}
+          # yamllint disable rule:line-length
           restore-keys: |
-            ${{ runner.os }}-multi-buildx
+            ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}
 
       - name: 🏗 Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -141,6 +151,9 @@ jobs:
             BUILD_REF=${{ github.sha }}
             BUILD_REPOSITORY=${{ github.repository }}
             BUILD_VERSION=${{ needs.information.outputs.version }}
+            CUDA=${{ matrix.version }}
+            OS=${{ matrix.os }}
+            FFMPEG_VERSION=${{ matrix.ffmpeg }}
       # This ugly bit is necessary, or our cache will grow forever...
       # Well until we hit GitHub's limit of 5GB :)
       # https://github.com/docker/build-push-action/issues/252

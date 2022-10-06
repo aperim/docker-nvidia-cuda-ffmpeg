@@ -1,13 +1,15 @@
-ARG CUDA=11.7.1
-ARG FLAVOUR=ubuntu22.04
-ARG BULDIMAGE=${CUDA}-devel-${FLAVOUR}
-ARG RUNIMAGE=${CUDA}-runtime-${FLAVOUR}
+ARG CUDA=11.8.0
+ARG OS=ubuntu22.04
+ARG BULDIMAGE=${CUDA}-devel-${OS}
+ARG RUNIMAGE=${CUDA}-runtime-${OS}
 
 FROM nvidia/cuda:${BULDIMAGE} AS builder
+ARG CUDA
+ARG OS
 
 RUN apt-get update && \
     apt-get -y --allow-change-held-packages full-upgrade && \
-    apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
         build-essential \
             cmake \
             curl \
@@ -175,6 +177,8 @@ RUN cd /opt/src/ffmpeg && \
     make -j$(nproc)
     
 FROM nvidia/cuda:${RUNIMAGE}
+ARG CUDA
+ARG OS
 
 RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
     ldconfig && \
@@ -191,7 +195,7 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
-    sudo=1.9.9-1ubuntu2 && \
+    sudo && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
@@ -412,8 +416,8 @@ ENV GID=1000
 
 RUN /usr/bin/ffmpeg -version
 
-ARG BUILD_DESCRIPTION="nvidia cuda ffmpeg"
-ARG BUILD_NAME="nvidia cuda ffmpeg"
+ARG BUILD_DESCRIPTION="NVIDIA® CUDA® Toolkit"
+ARG BUILD_NAME="NVIDIA® CUDA® Toolkit"
 ARG BUILD_DATE
 ARG BUILD_REF
 ARG BUILD_REPOSITORY
@@ -421,8 +425,8 @@ ARG BUILD_VERSION
 
 LABEL \
     maintainer="Troy Kelly <troy@aperim.com>" \
-    org.opencontainers.image.title="${BUILD_NAME}" \
-    org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
+    org.opencontainers.image.title="${BUILD_NAME} ${CUDA}" \
+    org.opencontainers.image.description="${BUILD_DESCRIPTION} ${CUDA} for ${OS} with ffmpeg ${FFMPEG_VERSION}" \
     org.opencontainers.image.vendor="Troy Kelly" \
     org.opencontainers.image.authors="Troy Kelly <troy@aperim.com>" \
     org.opencontainers.image.licenses="Apache-2.0" \
