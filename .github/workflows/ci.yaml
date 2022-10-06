@@ -26,7 +26,6 @@ jobs:
       name: ${{ steps.information.outputs.name }}
       version: ${{ steps.information.outputs.version }}
       build_date: ${{ steps.information.outputs.build_date }}
-      api_url: ${{ steps.information.outputs.api_url }}
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v3
@@ -47,6 +46,7 @@ jobs:
               environment="beta"
             fi
           fi
+          ffmpeg_version="$(curl -sL https://api.github.com/repos/mautic/mautic/releases/latest | jq -r '.tag_name')"
 
           echo "::set-output name=environment::${environment}"
           echo "::set-output name=version::${version}"
@@ -88,16 +88,14 @@ jobs:
             aperimau/nvidia-cuda-ffmpeg
             ghcr.io/aperim/nvidia-cuda-ffmpeg
           # generate Docker tags based on the following events/attributes
-          flavor: |
-            latest=false
-            prefix=${{ matrix.version }}-${{ matrix.os }}-
-            suffix=
+          # yamllint disable rule:line-length
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha
-            type=edge,enable=true,priority=700,prefix=,suffix=,branch=$repo.default_branch
+            type=schedule,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=sha,prefix=${{ matrix.version }}-${{ matrix.os }}-
+            type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
+          # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache
         id: cache
