@@ -185,7 +185,7 @@ Camera Transcode
                         encoder (optional) Either h264 or hevc [default hevc]
                         framerate (optional) The frame rate [no default]
         Example
-                ./ffmpeg/rootfs/usr/local/bin/camera rtsp://admin@passw0rd:192.0.2.1/main/0 rtsp://streaming.server.example/camera1 16M h264 24
+                camera rtsp://admin@passw0rd:192.0.2.1/main/0 rtsp://streaming.server.example/camera1 16M h264 24
         Note
                 The output url must be RTSP. It will be using TCP
 ```
