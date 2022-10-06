@@ -9,7 +9,7 @@ ARG OS
 
 RUN apt-get update && \
     apt-get -y --allow-change-held-packages full-upgrade && \
-    apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
         build-essential \
             cmake \
             curl \
@@ -195,7 +195,7 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
-    sudo=1.9.9-1ubuntu2 && \
+    sudo && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg

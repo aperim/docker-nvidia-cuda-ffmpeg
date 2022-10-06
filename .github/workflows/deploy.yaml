@@ -112,9 +112,10 @@ jobs:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
           # yamllint disable rule:line-length
-          key: ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ github.sha }}
+          key: ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}-${{ github.sha }}
+          # yamllint disable rule:line-length
           restore-keys: |
-            ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}
+            ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}
 
       - name: 🏗 Set up QEMU
         uses: docker/setup-qemu-action@v2
