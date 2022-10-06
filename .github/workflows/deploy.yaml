@@ -53,12 +53,18 @@ jobs:
           echo "::set-output name=environment::${environment}"
           echo "::set-output name=version::${version}"
 
-          echo "::set-output name=name::nvidia cuda ffmpeg ${environment}"
-          echo "::set-output name=description::nvidia cuda ffmpeg ${environment} in a container"
+          echo "::set-output name=name::NVIDIA® CUDA® Toolkit"
+          echo "::set-output name=description::NVIDIA® CUDA® Toolkit"
           echo "::set-output name=api_url::${api_url}"
         # yamllint enable rule:line-length
   deploy:
-    name: 👷 Build & Deploy
+    strategy:
+      matrix:
+        version: [11.8.0, 11.7.1, 11.7.0]
+        ffmpeg: [5.1.2]
+        os: [ubuntu22.04, ubuntu20.04]
+    # yamllint disable rule:line-length
+    name: 👷 Build & Deploy CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
     needs:
       - information
     runs-on: ubuntu-latest
@@ -85,6 +91,10 @@ jobs:
             ghcr.io/aperim/nvidia-cuda-ffmpeg
           # generate Docker tags based on the following events/attributes
           # yamllint disable rule:line-length
+          flavor: |
+            latest=true
+            prefix=${{ matrix.version }}-${{ matrix.os }}-
+            suffix=
           tags: |
             type=schedule
             type=ref,event=branch
@@ -101,9 +111,10 @@ jobs:
         with:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
-          key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+          # yamllint disable rule:line-length
+          key: ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-multi-buildx
+            ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}
 
       - name: 🏗 Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -147,6 +158,9 @@ jobs:
             BUILD_REF=${{ github.sha }}
             BUILD_REPOSITORY=${{ github.repository }}
             BUILD_VERSION=${{ needs.information.outputs.version }}
+            CUDA=${{ matrix.version }}
+            OS=${{ matrix.os }}
+            FFMPEG_VERSION=${{ matrix.ffmpeg }}
       # This ugly bit is necessary, or our cache will grow forever...
       # Well until we hit GitHub's limit of 5GB :)
       # https://github.com/docker/build-push-action/issues/252
