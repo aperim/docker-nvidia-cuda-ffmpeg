@@ -29,6 +29,40 @@ docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CA
 docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest -h encoder=h264_nvenc
 ```
 
+## Getting it working
+
+The NVIDIA CUDA drivers are badly broken. To get encoding/decoding working currently - you must apply a patch/hack by [keylase](https://github.com/keylase/nvidia-patch)
+
+More information [here](https://github.com/NVIDIA/open-gpu-kernel-modules/issues/104#issuecomment-1246276388)
+
+```bash
+# Ensure secure boot is disabled - ie mokutil --disable-validation
+sudo systemctl stop docker
+sudo apt-get -y remove nvidia-docker2 # If you are using it
+sudo apt-get -y install build-essential curl dkms linux-headers-$(uname -r)
+sudo rm -f /etc/modprobe.d/blacklist-nvidia-nouveau.conf /etc/modprobe.d/nvidia-unsupported-gpu.conf
+echo blacklist nouveau | sudo tee /etc/modprobe.d/blacklist-nvidia-nouveau.conf && \
+	echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/blacklist-nvidia-nouveau.conf && \
+	echo options nvidia NVreg_OpenRmEnableUnsupportedGpus=1 | sudo tee /etc/modprobe.d/nvidia-unsupported-gpu.conf && \
+	sudo update-initramfs -u && \
+	sudo /sbin/reboot
+git clone https://github.com/keylase/nvidia-patch.git && \
+	curl -LO https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run && \
+	chmod +x ./cuda_11.7.1_515.65.01_linux.run && \
+	sudo ./cuda_11.7.1_515.65.01_linux.run -m=kernel-open
+sudo /sbin/reboot
+# Confirm working
+nvidia-smi
+cd nvidia-patch
+sudo bash ./patch.sh
+cd ..
+rm -Rf ./nvidia-patch ./cuda_*.run
+sudo /sbin/reboot
+# Check can encode now
+curl -LO http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+ffmpeg -i BigBuckBunny.mp4 -c:v h264_nvenc  output.mp4
+```
+
 ## Extras
 
 [**Mosaic**](#Mosaic)
