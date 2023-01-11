@@ -73,6 +73,7 @@ if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
 then
   while :
   do
+    echo >&2 "🤖 Keep running enabled"
     engage $@
   done
 else
