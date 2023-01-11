@@ -61,7 +61,7 @@ cooldown () {
 
 engage () {
   pre
-  start
+  start $@
   post
   if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
   then
@@ -73,8 +73,8 @@ if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
 then
   while :
   do
-    engage
+    engage $@
   done
 else
-  engage
+  engage $@
 fi
