@@ -13,18 +13,69 @@ else
   groupmod -g ${GID} ffmpeg
 fi
 
+if [[ -z "${KEEPRUNNING}" ]]; then
+  KEEPRUNNING=0
+fi
+
+if [[ -z "${COOLDOWN}" ]]; then
+  COOLDOWN=5
+fi
+
+if [[ -z "${PRESCRIPT}" ]]; then
+  PRESCRIPT="echo \"🎬 Starting\""
+fi
+
+if [[ -z "${POSTSCRIPT}" ]]; then
+  POSTSCRIPT="echo \"🏁 Finished\""
+fi
+
 chown -R ${UID}:${GID} /etc/ffmpeg
 
-if [[ -x "/usr/bin/ffmpeg" ]]; then
-  echo >&2 "🆗 Ready"
-  # first arg is `-f` or `--some-option`
-  if [ "${1#-}" != "$1" ]; then
-    echo >&2 "📺 Starting ffmpeg with settings \"$@\""
-    sudo --preserve-env -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@"
+start () {
+  if [[ -x "/usr/bin/ffmpeg" ]]; then
+    # first arg is `-f` or `--some-option`
+    if [ "${1#-}" != "$1" ]; then
+      echo >&2 "📺 Starting ffmpeg with settings \"$@\""
+      sudo --preserve-env -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@"
+    else
+      echo >&2 "📺 Executing \"$@\""
+      sudo --preserve-env -H -u ffmpeg -- bash -c "$@" 
+    fi
   else
-    echo >&2 "📺 Executing \"$@\""
-    sudo --preserve-env -H -u ffmpeg -- bash -c "$@" 
+    echo >&2 "🛑 No ffmpeg executable"
   fi
+}
+
+pre () {
+  sudo --preserve-env -H -u ffmpeg -- bash -c "${PRESCRIPT}"
+}
+
+post () {
+  sudo --preserve-env -H -u ffmpeg -- bash -c "${POSTSCRIPT}"
+}
+
+cooldown () {
+    echo >&2 "⏳ Cooling down"
+    sleep 5 
+}
+
+engage () {
+  pre
+  start $@
+  post
+  if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
+  then
+    cooldown
+  fi
+}
+
+if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
+then
+  while :
+  do
+    echo >&2 "🤖 Keep running enabled"
+    engage $@
+  done
 else
-  echo >&2 "🛑 No ffmpeg executable"
+  engage $@
 fi
