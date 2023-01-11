@@ -46,7 +46,6 @@ jobs:
               environment="beta"
             fi
           fi
-          ffmpeg_version="$(curl -sL https://api.github.com/repos/mautic/mautic/releases/latest | jq -r '.tag_name')"
 
           echo "::set-output name=environment::${environment}"
           echo "::set-output name=version::${version}"
