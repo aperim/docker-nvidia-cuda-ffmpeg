@@ -22,11 +22,11 @@ if [[ -z "${COOLDOWN}" ]]; then
 fi
 
 if [[ -z "${PRESCRIPT}" ]]; then
-  PRESCRIPT=echo \>\&2 "🎬 Starting"
+  PRESCRIPT="echo \>\&2 \"🎬 Starting\""
 fi
 
 if [[ -z "${POSTSCRIPT}" ]]; then
-  POSTSCRIPT=echo \>\&2 "🏁 Finished"
+  POSTSCRIPT="echo \>\&2 \"🏁 Finished\""
 fi
 
 chown -R ${UID}:${GID} /etc/ffmpeg
