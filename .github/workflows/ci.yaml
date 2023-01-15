@@ -36,7 +36,7 @@ jobs:
           sha="${{ github.sha }}"
           environment="edge"
           version="${sha:0:7}"
-          echo "::set-output name=containersha::${version}"
+          echo "containersha=${version}" >> $GITHUB_OUTPUT
           if [[ "${{ github.event_name }}" = "release" ]]; then
             version="${{ github.event.release.tag_name }}"
             version="${version,,}"
@@ -47,11 +47,11 @@ jobs:
             fi
           fi
 
-          echo "::set-output name=environment::${environment}"
-          echo "::set-output name=version::${version}"
+          echo "environment=${environment}" >> $GITHUB_OUTPUT
+          echo "version=${version}" >> $GITHUB_OUTPUT
 
-          echo "::set-output name=name::NVIDIA® CUDA® Toolkit"
-          echo "::set-output name=description::NVIDIA® CUDA® Toolkit"
+          echo "name=NVIDIA® CUDA® Toolkit" >> $GITHUB_OUTPUT
+          echo "description=NVIDIA® CUDA® Toolkit" >> $GITHUB_OUTPUT
         # yamllint enable rule:line-length
 
   build:
