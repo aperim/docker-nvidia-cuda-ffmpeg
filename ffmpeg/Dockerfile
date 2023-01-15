@@ -195,6 +195,8 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
+    python3 \
+    python3-pip \
     sudo && \
     rm -rf /var/lib/apt/lists/*
 
