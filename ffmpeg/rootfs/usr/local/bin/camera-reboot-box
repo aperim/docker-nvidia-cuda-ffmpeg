@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+# A Python3 script to log in to and reset a web camera
+# To reset the camera, the script must first login and then set appropriate
+# cookies and send the reboot subject and XML payload.
+# The script should first retrieve the tid value from the camera at the login URL
+# The tid value is retrieved from the 302 redirect when requesting the login URL
+#
+# Cookies from the do login URL should be used for the reboot post
+# Camera payload should always be sent as XML
+# 
+# Camera requires the following fields posted to the do login URL
+#  username - the username
+#  access - the tid value and the password together as a lowercase md5 - tid:password
+#  tid - the tid value from the login URL
+#
+# The Do Login URL will return a cookie that contains the wsid value that must be used
+# for get and set requests 
+#
+# The Cookie header for all set and get requests after login must contain
+#  bvusername = username
+#  bvpassword = lowercase md5 of the camera password
+#  bvlanguage = English
+#  wsid = from cookies in do login
+#
+# The referer for all camera get and set requests must be set as the nonce URL with
+# a querystring variable of 'slce' which must be a random integer between 800 and 653700 
+
+import subprocess
+import argparse
+import requests
+import urllib3
+import hashlib
+import random
+
+# Set default values
+CAMERA_HOSTNAME=""
+CAMERA_USERNAME=""
+CAMERA_PASSWORD=""
+ALIVE_TIMEOUT=15
+
+# Parse command line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("--host", help="Camera hostname")
+parser.add_argument("-u", "--username", help="Camera username")
+parser.add_argument("-p", "--password", help="Camera password")
+parser.add_argument("-t", "--timeout", help="Alive timeout")
+args = parser.parse_args()
+
+# Check if the camera hostname is set
+if args.host:
+    CAMERA_HOSTNAME = args.host
+else:
+    print("Camera hostname not set")
+    exit(1)
+
+# Check if the camera username is set
+if args.username:
+    CAMERA_USERNAME = args.username
+else:
+    print("Camera username not set")
+    exit(1)
+
+# Check if the camera password is set
+if args.password:
+    CAMERA_PASSWORD = args.password
+else:
+    print("Camera password not set")
+    exit(1)
+
+# Check if the alive timeout is set
+if args.timeout:
+    ALIVE_TIMEOUT = args.timeout
+
+# Camera login start
+CAMERA_LOGIN = 'login.html'
+
+# Authentication endpoint
+CAMERA_DO_LOGIN = '/goform/formLogin'
+
+# Settings endpoint
+CAMERA_SET = '/action/set'
+CAMERA_GET = '/action/get'
+
+# Reboot subject
+CAMERA_SUBJECT_REBOOT = 'maintain'
+
+# Reboot XML payload
+CAMERA_PAYLOAD_REBOOT = '<?xml version="1.0" encoding="utf-8"?><request><maintain><type>0</type></maintain></request>'
+
+# Get the tid value from the login URL
+def get_tid():
+    # Get the tid value from the login URL
+    # The tid value is retrieved from the 302 redirect when requesting the login URL
+    
+    # Set the login URL
+    login_url = 'http://' + CAMERA_HOSTNAME + '/' + CAMERA_LOGIN
+    
+    # Get the tid value from the login URL
+    # The tid value is retrieved from the 302 redirect when requesting the login URL
+    try:
+        # Get the tid value from the login URL
+        # The tid value is retrieved from the 302 redirect when requesting the login URL
+        response = requests.get(login_url, allow_redirects=False)
+        # Check if the response is a redirect
+        if response.status_code == 302:
+            # Get the tid value from the redirect URL
+            tid = response.headers['Location'].split('=')[1]
+            return tid
+        else:
+            print("Error getting tid value")
+            exit(1)
+    except:
+        print("Error getting tid value")
+        exit(1)
+
+# Login to the camera
+def login(tid):
+    # Login to the camera
+    # The Do Login URL will return a cookie that contains the wsid value that must be used
+    # for get and set requests 
+    
+    # Set the do login URL
+    do_login_url = 'http://' + CAMERA_HOSTNAME + CAMERA_DO_LOGIN
+    
+    # Set the username and password
+    username = CAMERA_USERNAME
+    password = CAMERA_PASSWORD
+    
+    # Set the access value
+    # The access value is the tid value and the password together as a lowercase md5 - tid:password
+    access = hashlib.md5((tid + ':' + password).encode('utf-8')).hexdigest()
+    
+    # Set the login payload
+    login_payload = {'username': username, 'access': access, 'tid': tid}
+    
+    # Login to the camera
+    try:
+        # Login to the camera
+        response = requests.post(do_login_url, data=login_payload)
+        # Check if the response is a redirect
+        if response.status_code == 200:
+            # Get the wsid value from the cookies
+            wsid = response.cookies['wsid']
+            return wsid
+        else:
+            print("Error logging in")
+            exit(1)
+    except:
+        print("Error logging in")
+        exit(1)
+
+# Reboot the camera
+def reboot(wsid):
+    # Reboot the camera
+    # The Cookie header for all set and get requests after login must contain
+    #  bvusername = username
+    #  bvpassword = lowercase md5 of the camera password
+    #  bvlanguage = English
+    #  wsid = from cookies in do login
+    #
+    # The referer for all camera get and set requests must be set as the nonce URL with
+    # a querystring variable of 'slce' which must be a random integer between 800 and 653700 
+    
+    # Set the username and password
+    username = CAMERA_USERNAME
+    password = CAMERA_PASSWORD
+    
+    # Set the cookies
+    cookies = {'bvusername': username, 'bvpassword': hashlib.md5(password.encode('utf-8')).hexdigest(), 'bvlanguage': 'English', 'wsid': wsid}
+    
+    # Set the reboot URL
+    reboot_url = 'http://' + CAMERA_HOSTNAME + CAMERA_SET
+    
+    # Set the referer
+    referer = 'http://' + CAMERA_HOSTNAME + '/nonce.html?slce=' + str(random.randint(800, 653700))
+    
+	# POST the XML payload and subject querystring to the camera
+	# The camera requires the subject querystring to be set to the subject
+	# The camera requires the XML payload to be set in the body
+    try:
+        # POST the XML payload and subject querystring to the camera
+        # The camera requires the subject querystring to be set to the subject
+        # The camera requires the XML payload to be set in the body
+        response = requests.post(reboot_url, params={'subject': CAMERA_SUBJECT_REBOOT}, data=CAMERA_PAYLOAD_REBOOT, cookies=cookies, headers={'Referer': referer})
+        print(response.status_code)
+        # Check if the response is a redirect
+        if response.status_code == 200:
+            print("Camera rebooted")
+        else:
+            print("Error rebooting camera")
+            exit(1)
+    except:
+        print("Error rebooting camera")
+        exit(1)
+
+# Main
+def main():
+    # Get the tid value from the login URL
+    # The tid value is retrieved from the 302 redirect when requesting the login URL
+    tid = get_tid()
+    
+    # Login to the camera
+    # The Do Login URL will return a cookie that contains the wsid value that must be used
+    # for get and set requests 
+    wsid = login(tid)
+    
+    # Reboot the camera
+    # The Cookie header for all set and get requests after login must contain
+    #  bvusername = username
+    #  bvpassword = lowercase md5 of the camera password
+    #  bvlanguage = English
+    #  wsid = from cookies in do login
+    #
+    # The referer for all camera get and set requests must be set as the nonce URL with
+    # a querystring variable of 'slce' which must be a random integer between 800 and 653700 
+    reboot(wsid)
+    
+
+# Run main
+if __name__ == "__main__":
+    main()

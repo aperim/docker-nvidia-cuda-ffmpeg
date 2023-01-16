@@ -32,31 +32,43 @@ fi
 chown -R ${UID}:${GID} /etc/ffmpeg
 
 start () {
+  local pid
   if [[ -x "/usr/bin/ffmpeg" ]]; then
     # first arg is `-f` or `--some-option`
     if [ "${1#-}" != "$1" ]; then
       echo >&2 "📺 Starting ffmpeg with settings \"$@\""
-      sudo --preserve-env -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@"
+      sudo --preserve-env -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@" &
+      pid=$!
     else
-      echo >&2 "📺 Executing \"$@\""
-      sudo --preserve-env -H -u ffmpeg -- bash -c "$@" 
+      echo >&2 "📺 Executing ${@}"
+      sudo --preserve-env -H -u ffmpeg -- bash -c 'exec "$@"' bash-run "$@" &
+      pid=$!
     fi
+    echo >&2 "🕴️ Waiting for process ${pid} to finish"
+    wait ${pid}
   else
     echo >&2 "🛑 No ffmpeg executable"
   fi
 }
 
 pre () {
-  sudo --preserve-env -H -u ffmpeg -- bash -c "${PRESCRIPT}"
+  local pid
+  sudo --preserve-env -H -u ffmpeg -- bash -c "${PRESCRIPT}" &
+  pid=$!
+  echo >&2 "🕴️ Pre process running as ${pid}"
+  wait ${pid}
 }
 
 post () {
-  sudo --preserve-env -H -u ffmpeg -- bash -c "${POSTSCRIPT}"
+  sudo --preserve-env -H -u ffmpeg -- bash -c "${POSTSCRIPT}" &
+  pid=$!
+  echo >&2 "🕴️ Post process running as ${pid}"
+  wait ${pid}
 }
 
 cooldown () {
     echo >&2 "⏳ Cooling down"
-    sleep 5 
+    sleep ${COOLDOWN}
 }
 
 engage () {
@@ -71,9 +83,9 @@ engage () {
 
 if [ "$KEEPRUNNING" != "0" ] && [ "${KEEPRUNNING^^}" != "FALSE" ]
 then
+  echo >&2 "🤖 Keep running enabled"
   while :
   do
-    echo >&2 "🤖 Keep running enabled"
     engage $@
   done
 else
