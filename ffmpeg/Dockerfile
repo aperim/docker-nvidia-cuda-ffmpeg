@@ -11,86 +11,91 @@ RUN apt-get update && \
     apt-get -y --allow-change-held-packages full-upgrade && \
     DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
         build-essential \
-            cmake \
-            curl \
-            flite1-dev \
-            frei0r-plugins-dev \
-            git \
-            ladspa-sdk \
-            libaom-dev \
-            libass-dev \
-            libavc1394-dev \
-            libbluray-dev \
-            libbs2b-dev \
-            libc6 \
-            libc6-dev \
-            libcaca-dev \
-            libcdio-dev \
-            libcdio-paranoia-dev \
-            libcdparanoia-dev \
-            libchromaprint-dev \
-            libcodec2-dev \
-            libdav1d-dev \
-            libdc1394-dev \
-            libdrm-dev \
-            libgles2-mesa-dev \
-            libgme-dev \
-            libgnutls28-dev \
-            libgsm1-dev \
-            libiec16022-dev \
-            libiec61883-dev \
-            libjack-dev \
-            liblilv-dev \
-            libmfx-dev \
-            libmp3lame-dev \
-            libmysofa-dev \
-            libnettle8 \
-            libnuma-dev \
-            libnuma1 \
-            libomxil-bellagio-dev \
-            libopenal-dev \
-            libopengl-dev \
-            libopenjp2-7-dev \
-            libopenmpt-dev \
-            libopus-dev \
-            libpocketsphinx-dev \
-            libpulse-dev \
-            librabbitmq-dev \
-            librsvg2-dev \
-            librubberband-dev \
-            libsdl2-gfx-dev \
-            libshine-dev \
-            libsnappy-dev \
-            libsoxr-dev \
-            libspeex-dev \
-            libsrt-gnutls-dev \
-            libssh-dev \
-            libtheora-dev \
-            libtool \
-            libtwolame-dev \
-            libunistring-dev \
-            libvidstab-dev \
-            libvpx-dev \
-            libwebp-dev \
-            libx264-dev \
-            libx265-dev \
-            libxvidcore-dev \
-            libzimg-dev \
-            libzmq3-dev \
-            libzvbi-dev \
-            lzip \
-            pkg-config \
-            unzip \
-            wget \
-            yasm
+        cmake \
+        curl \
+        flite1-dev \
+        frei0r-plugins-dev \
+        git \
+        ladspa-sdk \
+        libaom-dev \
+        libass-dev \
+        libavc1394-dev \
+        libbluray-dev \
+        libbs2b-dev \
+        libc6 \
+        libc6-dev \
+        libcaca-dev \
+        libcdio-dev \
+        libcdio-paranoia-dev \
+        libcdparanoia-dev \
+        libchromaprint-dev \
+        libcodec2-dev \
+        libdav1d-dev \
+        libdc1394-dev \
+        libdrm-dev \
+        libgcrypt20-dev \
+        libgles2-mesa-dev \
+        libgme-dev \
+        libgnutls28-dev \
+        libgsm1-dev \
+        libiec16022-dev \
+        libiec61883-dev \
+        libjack-dev \
+        liblcms2-dev \
+        liblensfun-dev \
+        liblilv-dev \
+        libmfx-dev \
+        libmp3lame-dev \
+        libmysofa-dev \
+        libnettle8 \
+        libnuma-dev \
+        libnuma1 \
+        libomxil-bellagio-dev \
+        libopenal-dev \
+        libopengl-dev \
+        libopenjp2-7-dev \
+        libopenmpt-dev \
+        libopus-dev \
+        libpocketsphinx-dev \
+        libpulse-dev \
+        librabbitmq-dev \
+        librsvg2-dev \
+        librubberband-dev \
+        libsdl2-gfx-dev \
+        libshine-dev \
+        libsmbclient-dev \
+        libsnappy-dev \
+        libsoxr-dev \
+        libspeex-dev \
+        libsrt-gnutls-dev \
+        libssh-dev \
+        libtesseract-dev \
+        libtheora-dev \
+        libtool \
+        libtwolame-dev \
+        libunistring-dev \
+        libvidstab-dev \
+        libvpx-dev \
+        libwebp-dev \
+        libx264-dev \
+        libx265-dev \
+        libxvidcore-dev \
+        libzimg-dev \
+        libzmq3-dev \
+        libzvbi-dev \
+        lzip \
+        pkg-config \
+        samba-dev \
+        unzip \
+        wget \
+        yasm
 
 ARG FFMPEG_VERSION=5.1.2
 
 RUN mkdir -p /opt/src/nv-codec-headers /opt/src/ffmpeg && \
     git clone --depth 1 https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /opt/src/nv-codec-headers && \
-    git clone --depth 1 --branch n${FFMPEG_VERSION} https://git.ffmpeg.org/ffmpeg.git /opt/src/ffmpeg
-
-RUN cd /opt/src/nv-codec-headers && \
+    git clone --depth 1 --branch n${FFMPEG_VERSION} https://git.ffmpeg.org/ffmpeg.git /opt/src/ffmpeg && \
+    cd /opt/src/nv-codec-headers && \
     make install
 
 # for later maybe
@@ -107,10 +112,530 @@ RUN cd /opt/src/ffmpeg && \
 	--arch=amd64 \
 	--enable-gpl \
 	--disable-stripping \
-    --enable-cuda \
-    --enable-cuda-nvcc \
-    --enable-cuvid \
+	--enable-chromaprint \
+	--enable-filter=abench \
+	--enable-filter=abitscope \
+	--enable-filter=acompressor \
+	--enable-filter=acontrast \
+	--enable-filter=acopy \
+	--enable-filter=acrossfade \
+	--enable-filter=acrossover \
+	--enable-filter=acrusher \
+	--enable-filter=acue \
+	--enable-filter=addroi \
+	--enable-filter=adeclick \
+	--enable-filter=adeclip \
+	--enable-filter=adecorrelate \
+	--enable-filter=adelay \
+	--enable-filter=adenorm \
+	--enable-filter=aderivative \
+	--enable-filter=adrawgraph \
+	--enable-filter=adynamicequalizer \
+	--enable-filter=adynamicsmooth \
+	--enable-filter=aecho \
+	--enable-filter=aemphasis \
+	--enable-filter=aeval \
+	--enable-filter=aevalsrc \
+	--enable-filter=aexciter \
+	--enable-filter=afade \
+	--enable-filter=afftdn \
+	--enable-filter=afftfilt \
+	--enable-filter=afifo \
+	--enable-filter=afir \
+	--enable-filter=afirsrc \
+	--enable-filter=aformat \
+	--enable-filter=afreqshift \
+	--enable-filter=afwtdn \
+	--enable-filter=agate \
+	--enable-filter=agraphmonitor \
+	--enable-filter=ahistogram \
+	--enable-filter=aiir \
+	--enable-filter=aintegral \
+	--enable-filter=ainterleave \
+	--enable-filter=alatency \
+	--enable-filter=alimiter \
+	--enable-filter=allpass \
+	--enable-filter=allrgb \
+	--enable-filter=allyuv \
+	--enable-filter=aloop \
+	--enable-filter=alphaextract \
+	--enable-filter=alphamerge \
+	--enable-filter=amerge \
+	--enable-filter=ametadata \
+	--enable-filter=amix \
+	--enable-filter=amovie \
+	--enable-filter=amplify \
+	--enable-filter=amultiply \
+	--enable-filter=anequalizer \
+	--enable-filter=anlmdn \
+	--enable-filter=anlmf \
+	--enable-filter=anlms \
+	--enable-filter=anoisesrc \
+	--enable-filter=anull \
+	--enable-filter=anullsink \
+	--enable-filter=anullsrc \
+	--enable-filter=apad \
+	--enable-filter=aperms \
+	--enable-filter=aphasemeter \
+	--enable-filter=aphaser \
+	--enable-filter=aphaseshift \
+	--enable-filter=apsyclip \
+	--enable-filter=apulsator \
+	--enable-filter=arealtime \
+	--enable-filter=aresample \
+	--enable-filter=areverse \
+	--enable-filter=arnndn \
+	--enable-filter=asdr \
+	--enable-filter=asegment \
+	--enable-filter=aselect \
+	--enable-filter=asendcmd \
+	--enable-filter=asetnsamples \
+	--enable-filter=asetpts \
+	--enable-filter=asetrate \
+	--enable-filter=asettb \
+	--enable-filter=ashowinfo \
+	--enable-filter=asidedata \
+	--enable-filter=asoftclip \
+	--enable-filter=aspectralstats \
+	--enable-filter=asplit \
+	--enable-filter=asr \
+	--enable-filter=ass \
+	--enable-filter=astats \
+	--enable-filter=astreamselect \
+	--enable-filter=asubboost \
+	--enable-filter=asubcut \
+	--enable-filter=asupercut \
+	--enable-filter=asuperpass \
+	--enable-filter=asuperstop \
+	--enable-filter=atadenoise \
+	--enable-filter=atempo \
+	--enable-filter=atilt \
+	--enable-filter=atrim \
+	--enable-filter=avectorscope \
+	--enable-filter=avgblur \
+	--enable-filter=avgblur_opencl \
+	--enable-filter=avsynctest \
+	--enable-filter=axcorrelate \
+	--enable-filter=azmq \
+	--enable-filter=bandpass \
+	--enable-filter=bandreject \
+	--enable-filter=bass \
+	--enable-filter=bbox \
+	--enable-filter=bench \
+	--enable-filter=bilateral \
+	--enable-filter=biquad \
+	--enable-filter=bitplanenoise \
+	--enable-filter=blackdetect \
+	--enable-filter=blackframe \
+	--enable-filter=blend \
+	--enable-filter=blockdetect \
+	--enable-filter=blurdetect \
+	--enable-filter=bm3d \
+	--enable-filter=boxblur \
+	--enable-filter=boxblur_opencl \
+	--enable-filter=bs2b \
+	--enable-filter=bwdif \
+	--enable-filter=cas \
+	--enable-filter=cellauto \
+	--enable-filter=channelmap \
+	--enable-filter=channelsplit \
+	--enable-filter=chorus \
+	--enable-filter=chromahold \
+	--enable-filter=chromakey \
+	--enable-filter=chromakey_cuda \
+	--enable-filter=chromanr \
+	--enable-filter=chromashift \
+	--enable-filter=ciescope \
+	--enable-filter=codecview \
+	--enable-filter=color \
+	--enable-filter=colorbalance \
+	--enable-filter=colorchannelmixer \
+	--enable-filter=colorchart \
+	--enable-filter=colorcontrast \
+	--enable-filter=colorcorrect \
+	--enable-filter=colorhold \
+	--enable-filter=colorize \
+	--enable-filter=colorkey \
+	--enable-filter=colorkey_opencl \
+	--enable-filter=colorlevels \
+	--enable-filter=colormap \
+	--enable-filter=colormatrix \
+	--enable-filter=colorspace \
+	--enable-filter=colorspectrum \
+	--enable-filter=colortemperature \
+	--enable-filter=compand \
+	--enable-filter=compensationdelay \
+	--enable-filter=concat \
+	--enable-filter=convolution \
+	--enable-filter=convolution_opencl \
+	--enable-filter=convolve \
+	--enable-filter=copy \
+	--enable-filter=cover_rect \
+	--enable-filter=crop \
+	--enable-filter=cropdetect \
+	--enable-filter=crossfeed \
+	--enable-filter=crystalizer \
+	--enable-filter=cue \
+	--enable-filter=curves \
+	--enable-filter=datascope \
+	--enable-filter=dblur \
+	--enable-filter=dcshift \
+	--enable-filter=dctdnoiz \
+	--enable-filter=deband \
+	--enable-filter=deblock \
+	--enable-filter=decimate \
+	--enable-filter=deconvolve \
+	--enable-filter=dedot \
+	--enable-filter=deesser \
+	--enable-filter=deflate \
+	--enable-filter=deflicker \
+	--enable-filter=deinterlace_qsv \
+	--enable-filter=dejudder \
+	--enable-filter=delogo \
+	--enable-filter=derain \
+	--enable-filter=deshake \
+	--enable-filter=deshake_opencl \
+	--enable-filter=despill \
+	--enable-filter=detelecine \
+	--enable-filter=dialoguenhance \
+	--enable-filter=dilation \
+	--enable-filter=dilation_opencl \
+	--enable-filter=displace \
+	--enable-filter=dnn_classify \
+	--enable-filter=dnn_detect \
+	--enable-filter=dnn_processing \
+	--enable-filter=doubleweave \
+	--enable-filter=drawbox \
+	--enable-filter=drawgraph \
+	--enable-filter=drawgrid \
+	--enable-filter=drawtext \
+	--enable-filter=drmeter \
+	--enable-filter=dynaudnorm \
+	--enable-filter=earwax \
+	--enable-filter=ebur128 \
+	--enable-filter=edgedetect \
+	--enable-filter=elbg \
+	--enable-filter=entropy \
+	--enable-filter=epx \
+	--enable-filter=eq \
+	--enable-filter=equalizer \
+	--enable-filter=erosion \
+	--enable-filter=erosion_opencl \
+	--enable-filter=estdif \
+	--enable-filter=exposure \
+	--enable-filter=extractplanes \
+	--enable-filter=extrastereo \
+	--enable-filter=fade \
+	--enable-filter=feedback \
+	--enable-filter=fftdnoiz \
+	--enable-filter=fftfilt \
+	--enable-filter=field \
+	--enable-filter=fieldhint \
+	--enable-filter=fieldmatch \
+	--enable-filter=fieldorder \
+	--enable-filter=fifo \
+	--enable-filter=fillborders \
+	--enable-filter=find_rect \
+	--enable-filter=firequalizer \
+	--enable-filter=flanger \
+	--enable-filter=flite \
+	--enable-filter=floodfill \
+	--enable-filter=format \
+	--enable-filter=fps \
+	--enable-filter=framepack \
+	--enable-filter=framerate \
+	--enable-filter=framestep \
+	--enable-filter=freezedetect \
+	--enable-filter=freezeframes \
+	--enable-filter=frei0r \
+	--enable-filter=frei0r_src \
+	--enable-filter=fspp \
+	--enable-filter=gblur \
+	--enable-filter=geq \
+	--enable-filter=gradfun \
+	--enable-filter=gradients \
+	--enable-filter=graphmonitor \
+	--enable-filter=grayworld \
+	--enable-filter=greyedge \
+	--enable-filter=guided \
+	--enable-filter=haas \
+	--enable-filter=haldclut \
+	--enable-filter=haldclutsrc \
+	--enable-filter=hdcd \
+	--enable-filter=headphone \
+	--enable-filter=hflip \
+	--enable-filter=highpass \
+	--enable-filter=highshelf \
+	--enable-filter=hilbert \
+	--enable-filter=histeq \
+	--enable-filter=histogram \
+	--enable-filter=hqdn3d \
+	--enable-filter=hqx \
+	--enable-filter=hstack \
+	--enable-filter=hsvhold \
+	--enable-filter=hsvkey \
+	--enable-filter=hue \
+	--enable-filter=huesaturation \
+	--enable-filter=hwdownload \
+	--enable-filter=hwmap \
+	--enable-filter=hwupload \
+	--enable-filter=hwupload_cuda \
+	--enable-filter=hysteresis \
+	--enable-filter=identity \
+	--enable-filter=idet \
+	--enable-filter=il \
+	--enable-filter=inflate \
+	--enable-filter=interlace \
+	--enable-filter=interleave \
+	--enable-filter=join \
+	--enable-filter=kerndeint \
+	--enable-filter=kirsch \
+	--enable-filter=ladspa \
+	--enable-filter=lagfun \
+	--enable-filter=latency \
+	--enable-filter=lenscorrection \
+	--enable-filter=lensfun \
+	--enable-filter=life \
+	--enable-filter=limitdiff \
+	--enable-filter=limiter \
+	--enable-filter=loop \
+	--enable-filter=loudnorm \
+	--enable-filter=lowpass \
+	--enable-filter=lowshelf \
+	--enable-filter=lumakey \
+	--enable-filter=lut \
+	--enable-filter=lut1d \
+	--enable-filter=lut2 \
+	--enable-filter=lut3d \
+	--enable-filter=lutrgb \
+	--enable-filter=lutyuv \
+	--enable-filter=lv2 \
+	--enable-filter=mandelbrot \
+	--enable-filter=maskedclamp \
+	--enable-filter=maskedmax \
+	--enable-filter=maskedmerge \
+	--enable-filter=maskedmin \
+	--enable-filter=maskedthreshold \
+	--enable-filter=maskfun \
+	--enable-filter=mcompand \
+	--enable-filter=median \
+	--enable-filter=mergeplanes \
+	--enable-filter=mestimate \
+	--enable-filter=metadata \
+	--enable-filter=midequalizer \
+	--enable-filter=minterpolate \
+	--enable-filter=mix \
+	--enable-filter=monochrome \
+	--enable-filter=morpho \
+	--enable-filter=movie \
+	--enable-filter=mpdecimate \
+	--enable-filter=mptestsrc \
+	--enable-filter=msad \
+	--enable-filter=multiply \
+	--enable-filter=negate \
+	--enable-filter=nlmeans \
+	--enable-filter=nlmeans_opencl \
+	--enable-filter=nnedi \
+	--enable-filter=noformat \
+	--enable-filter=noise \
+	--enable-filter=normalize \
+	--enable-filter=null \
+	--enable-filter=nullsink \
+	--enable-filter=nullsrc \
+	--enable-filter=ocr \
+	--enable-filter=openclsrc \
+	--enable-filter=oscilloscope \
+	--enable-filter=overlay \
+	--enable-filter=overlay_cuda \
+	--enable-filter=overlay_opencl \
+	--enable-filter=overlay_qsv \
+	--enable-filter=owdenoise \
+	--enable-filter=pad \
+	--enable-filter=pad_opencl \
+	--enable-filter=pal100bars \
+	--enable-filter=pal75bars \
+	--enable-filter=palettegen \
+	--enable-filter=paletteuse \
+	--enable-filter=pan \
+	--enable-filter=perms \
+	--enable-filter=perspective \
+	--enable-filter=phase \
+	--enable-filter=photosensitivity \
+	--enable-filter=pixdesctest \
+	--enable-filter=pixelize \
+	--enable-filter=pixscope \
+	--enable-filter=pp \
+	--enable-filter=pp7 \
+	--enable-filter=premultiply \
+	--enable-filter=prewitt \
+	--enable-filter=prewitt_opencl \
+	--enable-filter=program_opencl \
+	--enable-filter=pseudocolor \
+	--enable-filter=psnr \
+	--enable-filter=pullup \
+	--enable-filter=qp \
+	--enable-filter=random \
+	--enable-filter=readeia608 \
+	--enable-filter=readvitc \
+	--enable-filter=realtime \
+	--enable-filter=remap \
+	--enable-filter=remap_opencl \
+	--enable-filter=removegrain \
+	--enable-filter=removelogo \
+	--enable-filter=repeatfields \
+	--enable-filter=replaygain \
+	--enable-filter=reverse \
+	--enable-filter=rgbashift \
+	--enable-filter=rgbtestsrc \
+	--enable-filter=roberts \
+	--enable-filter=roberts_opencl \
+	--enable-filter=rotate \
+	--enable-filter=rubberband \
+	--enable-filter=sab \
+	--enable-filter=scale \
+	--enable-filter=scale_cuda \
+	--enable-filter=scale_npp \
+	--enable-filter=scale_qsv \
+	--enable-filter=scale2ref \
+	--enable-filter=scale2ref_npp \
+	--enable-filter=scdet \
+	--enable-filter=scharr \
+	--enable-filter=scroll \
+	--enable-filter=segment \
+	--enable-filter=select \
+	--enable-filter=selectivecolor \
+	--enable-filter=sendcmd \
+	--enable-filter=separatefields \
+	--enable-filter=setdar \
+	--enable-filter=setfield \
+	--enable-filter=setparams \
+	--enable-filter=setpts \
+	--enable-filter=setrange \
+	--enable-filter=setsar \
+	--enable-filter=settb \
+	--enable-filter=sharpen_npp \
+	--enable-filter=shear \
+	--enable-filter=showcqt \
+	--enable-filter=showfreqs \
+	--enable-filter=showinfo \
+	--enable-filter=showpalette \
+	--enable-filter=showspatial \
+	--enable-filter=showspectrum \
+	--enable-filter=showspectrumpic \
+	--enable-filter=showvolume \
+	--enable-filter=showwaves \
+	--enable-filter=showwavespic \
+	--enable-filter=shuffleframes \
+	--enable-filter=shufflepixels \
+	--enable-filter=shuffleplanes \
+	--enable-filter=sidechaincompress \
+	--enable-filter=sidechaingate \
+	--enable-filter=sidedata \
+	--enable-filter=sierpinski \
+	--enable-filter=signalstats \
+	--enable-filter=signature \
+	--enable-filter=silencedetect \
+	--enable-filter=silenceremove \
+	--enable-filter=sinc \
+	--enable-filter=sine \
+	--enable-filter=siti \
+	--enable-filter=smartblur \
+	--enable-filter=smptebars \
+	--enable-filter=smptehdbars \
+	--enable-filter=sobel \
+	--enable-filter=sobel_opencl \
+	--enable-filter=sofalizer \
+	--enable-filter=spectrumsynth \
+	--enable-filter=speechnorm \
+	--enable-filter=split \
+	--enable-filter=spp \
+	--enable-filter=sr \
+	--enable-filter=ssim \
+	--enable-filter=stereo3d \
+	--enable-filter=stereotools \
+	--enable-filter=stereowiden \
+	--enable-filter=streamselect \
+	--enable-filter=subtitles \
+	--enable-filter=super2xsai \
+	--enable-filter=superequalizer \
+	--enable-filter=surround \
+	--enable-filter=swaprect \
+	--enable-filter=swapuv \
+	--enable-filter=tblend \
+	--enable-filter=telecine \
+	--enable-filter=testsrc \
+	--enable-filter=testsrc2 \
+	--enable-filter=thistogram \
+	--enable-filter=threshold \
+	--enable-filter=thumbnail \
+	--enable-filter=thumbnail_cuda \
+	--enable-filter=tile \
+	--enable-filter=tiltshelf \
+	--enable-filter=tinterlace \
+	--enable-filter=tlut2 \
+	--enable-filter=tmedian \
+	--enable-filter=tmidequalizer \
+	--enable-filter=tmix \
+	--enable-filter=tonemap \
+	--enable-filter=tonemap_opencl \
+	--enable-filter=tpad \
+	--enable-filter=transpose \
+	--enable-filter=transpose_npp \
+	--enable-filter=transpose_opencl \
+	--enable-filter=treble \
+	--enable-filter=tremolo \
+	--enable-filter=trim \
+	--enable-filter=unpremultiply \
+	--enable-filter=unsharp \
+	--enable-filter=unsharp_opencl \
+	--enable-filter=untile \
+	--enable-filter=v360 \
+	--enable-filter=vaguedenoiser \
+	--enable-filter=varblur \
+	--enable-filter=vectorscope \
+	--enable-filter=vflip \
+	--enable-filter=vfrdet \
+	--enable-filter=vibrance \
+	--enable-filter=vibrato \
+	--enable-filter=vidstabdetect \
+	--enable-filter=vidstabtransform \
+	--enable-filter=vif \
+	--enable-filter=vignette \
+	--enable-filter=virtualbass \
+	--enable-filter=vmafmotion \
+	--enable-filter=volume \
+	--enable-filter=volumedetect \
+	--enable-filter=vpp_qsv \
+	--enable-filter=vstack \
+	--enable-filter=w3fdif \
+	--enable-filter=waveform \
+	--enable-filter=weave \
+	--enable-filter=xbr \
+	--enable-filter=xcorrelate \
+	--enable-filter=xfade \
+	--enable-filter=xfade_opencl \
+	--enable-filter=xmedian \
+	--enable-filter=xstack \
+	--enable-filter=yadif \
+	--enable-filter=yadif_cuda \
+	--enable-filter=yaepblur \
+	--enable-filter=yuvtestsrc \
+	--enable-filter=zmq \
+	--enable-filter=zoompan \
+	--enable-filter=zscale \
+	--enable-frei0r \
 	--enable-gnutls \
+	--enable-hwaccel=av1_nvdec \
+	--enable-hwaccel=h264_nvdec \
+	--enable-hwaccel=hevc_nvdec \
+	--enable-hwaccel=mjpeg_nvdec \
+	--enable-hwaccel=mpeg1_nvdec \
+	--enable-hwaccel=mpeg2_nvdec \
+	--enable-hwaccel=mpeg4_nvdec \
+	--enable-hwaccel=vc1_nvdec \
+	--enable-hwaccel=vp8_nvdec \
+	--enable-hwaccel=vp9_nvdec \
+	--enable-hwaccel=wmv3_nvdec \
 	--enable-ladspa \
 	--enable-libaom \
 	--enable-libass \
@@ -120,21 +645,25 @@ RUN cd /opt/src/ffmpeg && \
 	--enable-libcdio \
 	--enable-libcodec2 \
 	--enable-libdav1d \
+	--enable-libdc1394 \
+	--enable-libdrm \
 	--enable-libflite \
 	--enable-libfontconfig \
 	--enable-libfreetype \
 	--enable-libfribidi \
 	--enable-libgme \
 	--enable-libgsm \
+	--enable-libiec61883 \
 	--enable-libjack \
+	--enable-libmfx \
 	--enable-libmp3lame \
 	--enable-libmysofa \
-    --enable-libnpp \
 	--enable-libopenjpeg \
 	--enable-libopenmpt \
 	--enable-libopus \
 	--enable-libpulse \
 	--enable-librabbitmq \
+	--enable-librsvg \
 	--enable-librubberband \
 	--enable-libshine \
 	--enable-libsnappy \
@@ -148,6 +677,7 @@ RUN cd /opt/src/ffmpeg && \
 	--enable-libvorbis \
 	--enable-libvpx \
 	--enable-libwebp \
+	--enable-libx264 \
 	--enable-libx265 \
 	--enable-libxml2 \
 	--enable-libxvid \
@@ -155,24 +685,69 @@ RUN cd /opt/src/ffmpeg && \
 	--enable-libzmq \
 	--enable-libzvbi \
 	--enable-lv2 \
-    --enable-nonfree \
-    --enable-nvdec \
-    --enable-nvenc \
 	--enable-omx \
 	--enable-openal \
 	--enable-opencl \
 	--enable-opengl \
-	--enable-sdl2 \
 	--enable-pocketsphinx \
-	--enable-librsvg \
-	--enable-libmfx \
-	--enable-libdc1394 \
-	--enable-libdrm \
-	--enable-libiec61883 \
-	--enable-chromaprint \
-	--enable-frei0r \
-	--enable-libx264 \
-	--enable-shared; \
+	--enable-protocol=async \
+	--enable-protocol=bluray \
+	--enable-protocol=cache \
+	--enable-protocol=concat \
+	--enable-protocol=concatf \
+	--enable-protocol=crypto \
+	--enable-protocol=data \
+	--enable-protocol=ffrtmpcrypt \
+	--enable-protocol=ffrtmphttp \
+	--enable-protocol=file \
+	--enable-protocol=ftp \
+	--enable-protocol=gopher \
+	--enable-protocol=gophers \
+	--enable-protocol=hls \
+	--enable-protocol=http \
+	--enable-protocol=httpproxy \
+	--enable-protocol=https \
+	--enable-protocol=icecast \
+	--enable-protocol=ipfs \
+	--enable-protocol=ipns \
+	--enable-protocol=libamqp \
+	--enable-protocol=libsmbclient \
+	--enable-protocol=libsrt \
+	--enable-protocol=libssh \
+	--enable-protocol=libzmq \
+	--enable-protocol=md5 \
+	--enable-protocol=mmsh \
+	--enable-protocol=mmst \
+	--enable-protocol=pipe \
+	--enable-protocol=prompeg \
+	--enable-protocol=rtmp \
+	--enable-protocol=rtmpe \
+	--enable-protocol=rtmps \
+	--enable-protocol=rtmpt \
+	--enable-protocol=rtmpte \
+	--enable-protocol=rtmpts \
+	--enable-protocol=rtp \
+	--enable-protocol=srtp \
+	--enable-protocol=subfile \
+	--enable-protocol=tcp \
+	--enable-protocol=tee \
+	--enable-protocol=tls \
+	--enable-protocol=udp \
+	--enable-protocol=udplite \
+	--enable-protocol=unix \
+	--enable-sdl2 \
+	--enable-shared \
+    --enable-cuda \
+    --enable-cuda-nvcc \
+    --enable-cuvid \
+    --enable-gcrypt \
+    --enable-gmp \
+    --enable-libnpp \
+    --enable-libtesseract \
+    --enable-nonfree \
+    --enable-nvdec \
+    --enable-nvenc \
+    --enable-version3 && \
     cat ffbuild/config.log || true && \
     make -j$(nproc)
     
@@ -195,6 +770,7 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
+    liblensfun-data-v1 \
     python3 \
     python3-pip \
     sudo && \
@@ -204,20 +780,25 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
 
 COPY --from=builder \
+    /opt/src/ffmpeg/libavcodec/libavcodec.so.59 \
+    /opt/src/ffmpeg/libavdevice/libavdevice.so.59 \
+    /opt/src/ffmpeg/libavfilter/libavfilter.so.8 \
+    /opt/src/ffmpeg/libavformat/libavformat.so.59 \
+    /opt/src/ffmpeg/libavutil/libavutil.so.57 \
+    /opt/src/ffmpeg/libpostproc/libpostproc.so.56 \
+    /opt/src/ffmpeg/libswresample/libswresample.so.4 \
+    /opt/src/ffmpeg/libswscale/libswscale.so.6 \
+    /usr/lib/x86_64-linux-gnu/blas \
+    /usr/lib/x86_64-linux-gnu/lapack \
     /usr/lib/x86_64-linux-gnu/libaom.so.3 \
     /usr/lib/x86_64-linux-gnu/libapparmor.so.1 \
+    /usr/lib/x86_64-linux-gnu/libarchive.so.13 \
     /usr/lib/x86_64-linux-gnu/libasound.so.2 \
     /usr/lib/x86_64-linux-gnu/libass.so.9 \
     /usr/lib/x86_64-linux-gnu/libasyncns.so.0 \
     /usr/lib/x86_64-linux-gnu/libavc1394.so.0 \
     /usr/lib/x86_64-linux-gnu/libavcodec.so.58 \
-    /opt/src/ffmpeg/libavcodec/libavcodec.so.59 \
-    /opt/src/ffmpeg/libavdevice/libavdevice.so.59 \
-    /opt/src/ffmpeg/libavfilter/libavfilter.so.8 \
-    /opt/src/ffmpeg/libavformat/libavformat.so.59 \
     /usr/lib/x86_64-linux-gnu/libavutil.so.56 \
-    /opt/src/ffmpeg/libavutil/libavutil.so.57 \
-    /usr/lib/x86_64-linux-gnu/blas \
     /usr/lib/x86_64-linux-gnu/libblkid.so.1 \
     /usr/lib/x86_64-linux-gnu/libbluray.so.2 \
     /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1 \
@@ -263,6 +844,7 @@ COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/libgcrypt.so.20 \
     /usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 \
     /usr/lib/x86_64-linux-gnu/libgfortran.so.5 \
+    /usr/lib/x86_64-linux-gnu/libgif.so.7 \
     /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0 \
     /usr/lib/x86_64-linux-gnu/libGL.so.1 \
     /usr/lib/x86_64-linux-gnu/libGLdispatch.so.0 \
@@ -289,7 +871,7 @@ COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/libkeyutils.so.1 \
     /usr/lib/x86_64-linux-gnu/libkrb5.so.3 \
     /usr/lib/x86_64-linux-gnu/libkrb5support.so.0 \
-    /usr/lib/x86_64-linux-gnu/lapack \
+    /usr/lib/x86_64-linux-gnu/liblept.so.5 \
     /usr/lib/x86_64-linux-gnu/liblilv-0.so.0 \
     /usr/lib/x86_64-linux-gnu/liblz4.so.1 \
     /usr/lib/x86_64-linux-gnu/liblzma.so.5 \
@@ -319,7 +901,6 @@ COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/libpixman-1.so.0 \
     /usr/lib/x86_64-linux-gnu/libpng16.so.16 \
     /usr/lib/x86_64-linux-gnu/libpocketsphinx.so.3 \
-    /opt/src/ffmpeg/libpostproc/libpostproc.so.56 \
     /usr/lib/x86_64-linux-gnu/libpthread.so.0 \
     /usr/lib/x86_64-linux-gnu/libpulse.so.0 \
     /usr/lib/x86_64-linux-gnu/libquadmath.so.0 \
@@ -350,10 +931,9 @@ COPY --from=builder \
     /usr/lib/x86_64-linux-gnu/libssl.so.3 \
     /usr/lib/x86_64-linux-gnu/libstdc++.so.6 \
     /usr/lib/x86_64-linux-gnu/libswresample.so.3 \
-    /opt/src/ffmpeg/libswresample/libswresample.so.4 \
-    /opt/src/ffmpeg/libswscale/libswscale.so.6 \
     /usr/lib/x86_64-linux-gnu/libsystemd.so.0 \
     /usr/lib/x86_64-linux-gnu/libtasn1.so.6 \
+    /usr/lib/x86_64-linux-gnu/libtesseract.so.4 \
     /usr/lib/x86_64-linux-gnu/libthai.so.0 \
     /usr/lib/x86_64-linux-gnu/libtheoradec.so.1 \
     /usr/lib/x86_64-linux-gnu/libtheoraenc.so.1 \
