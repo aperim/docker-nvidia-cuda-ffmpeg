@@ -54,14 +54,14 @@ start () {
 
 pre () {
   local pid
-  sudo --preserve-env -H -u ffmpeg -- bash -c "${PRESCRIPT}" &
+  sudo --preserve-env -H -u ffmpeg -- bash -c "exec ${PRESCRIPT} || true  </dev/null" &
   pid=$!
   echo >&2 "🕴️ Pre process running as ${pid}"
   wait ${pid}
 }
 
 post () {
-  sudo --preserve-env -H -u ffmpeg -- bash -c "${POSTSCRIPT}" &
+  sudo --preserve-env -H -u ffmpeg -- bash -c "exec ${POSTSCRIPT} || true  </dev/null" &
   pid=$!
   echo >&2 "🕴️ Post process running as ${pid}"
   wait ${pid}
