@@ -198,7 +198,8 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
     python3 \
     python3-pip \
     sudo && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    pip install requests
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
 

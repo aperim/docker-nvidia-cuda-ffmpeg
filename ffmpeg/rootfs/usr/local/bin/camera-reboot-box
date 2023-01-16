@@ -193,27 +193,6 @@ def reboot(wsid):
         print("Error rebooting camera")
         exit(1)
 
-# Check if the camera is alive
-def is_alive():
-    # Check if the camera is alive
-    # The camera is alive if the ping command returns 0
-    
-    # Set the ping command
-    ping_command = 'ping -c 1 -W ' + ALIVE_TIMEOUT + ' ' + CAMERA_HOSTNAME
-    
-    # Check if the camera is alive
-    # The camera is alive if the ping command returns 0
-    try:
-        # Check if the camera is alive
-        # The camera is alive if the ping command returns 0
-        response = subprocess.call(ping_command, shell=True)
-        if response == 0:
-            return True
-        else:
-            return False
-    except:
-        return False
-
 # Main
 def main():
     # Get the tid value from the login URL
@@ -236,13 +215,6 @@ def main():
     # a querystring variable of 'slce' which must be a random integer between 800 and 653700 
     reboot(wsid)
     
-    # Check if the camera is alive
-    # The camera is alive if the ping command returns 0
-    if is_alive():
-        print("Camera is alive")
-    else:
-        print("Camera is not alive")
-        exit(1)
 
 # Run main
 if __name__ == "__main__":

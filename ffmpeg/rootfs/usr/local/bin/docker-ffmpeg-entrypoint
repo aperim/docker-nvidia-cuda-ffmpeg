@@ -40,8 +40,8 @@ start () {
       sudo --preserve-env -H -u ffmpeg -- "/usr/bin/ffmpeg" "$@" &
       pid=$!
     else
-      echo >&2 "📺 Executing \"$@\""
-      sudo --preserve-env -H -u ffmpeg -- bash -c "$@" &
+      echo >&2 "📺 Executing ${@}"
+      sudo --preserve-env -H -u ffmpeg -- bash -c 'exec "$@"' bash-run "$@" &
       pid=$!
     fi
     echo >&2 "🕴️ Waiting for process ${pid} to finish"
