@@ -223,3 +223,30 @@ Camera Transcode
         Note
                 The output url must be RTSP. It will be using TCP
 ```
+
+### Camera Reboot Box
+
+Reboots the generic box style camera firmware being used by a lot of aliexpress type shippers.
+
+```bash
+docker run -it --rm --gpus=all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all ghcr.io/aperim/nvidia-cuda-ffmpeg:latest camera-reboot-box \
+	--host camerahost.example.com \
+  --username CAMERAUSERNAME \
+  --password CAMERAPASSWORD \
+  --timeout TIMEOUT_IN_SECONDS
+```
+
+```text
+Box Style Camera Reboot
+      Usage - pass the host, username and password
+            camera-box-reboot --host <host> --username <username> --password <password> [--timeout <timeout>]
+                  host the hostname or ip of the camera
+                  username the admin username for the camera
+                  password the admin password for the camera
+                  timeout seconds to wait for camera to reboot
+      Example
+            camera-box-reboot --host camera1.example.com --username admin --password s5cr3t
+            camera-box-reboot --host 198.51.100.100 --username camerauser --password d4ng3R! --timeout 30
+      Note
+            This will reboot the camera, that's it.
+```
