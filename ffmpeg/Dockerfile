@@ -775,7 +775,7 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
     python3-pip \
     sudo && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install requests
+    pip install requests streamlink
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
 
