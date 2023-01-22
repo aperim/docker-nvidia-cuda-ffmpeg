@@ -770,11 +770,17 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
         ffmpeg && \
     chown -R ffmpeg:ffmpeg /etc/ffmpeg && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
+	fontconfig \
+	fonts-lato \
+	fonts-open-sans \
+	fonts-roboto \
+	fonts-mononoki \
     liblensfun-data-v1 \
     python3 \
     python3-pip \
     sudo && \
     rm -rf /var/lib/apt/lists/* && \
+	fc-cache -v /usr/share/fonts && \
     pip install requests streamlink
 
 COPY --from=builder /opt/src/ffmpeg/ffmpeg /usr/bin/ffmpeg
