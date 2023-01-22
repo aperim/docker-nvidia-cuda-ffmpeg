@@ -778,7 +778,8 @@ RUN echo "/usr/lib/x86_64-linux-gnu" | tee -a /etc/ld.so.conf && \
     liblensfun-data-v1 \
     python3 \
     python3-pip \
-    sudo && \
+    sudo \
+	tzdata && \
     rm -rf /var/lib/apt/lists/* && \
 	fc-cache -v /usr/share/fonts && \
     pip install requests streamlink
