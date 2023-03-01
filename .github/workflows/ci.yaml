@@ -58,7 +58,7 @@ jobs:
     strategy:
       matrix:
         version: [12.0.0, 11.8.0, 11.7.1, 11.7.0]
-        ffmpeg: [5.1.2]
+        ffmpeg: [5.1.2, 6.0]
         os: [ubuntu22.04]
     # yamllint disable rule:line-length
     name: 👷 Build CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
@@ -94,12 +94,12 @@ jobs:
             type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.os }}-
             type=sha,prefix=${{ matrix.version }}-${{ matrix.os }}-
             type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
-            type=edge,enable=${{ matrix.version == '12.0.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '5.1.2' }},prefix=,suffix=
+            type=edge,enable=${{ matrix.version == '12.0.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
           # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache
         id: cache
-        uses: actions/cache@v3.2.6
+        uses: actions/cache@v3.2.3
         with:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
@@ -131,7 +131,7 @@ jobs:
           password: ${{ secrets.CI_PAT }}
 
       - name: 🚀 Build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v3
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
