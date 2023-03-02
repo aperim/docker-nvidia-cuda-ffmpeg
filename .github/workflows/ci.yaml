@@ -82,6 +82,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
+          flavor: |
+            latest=false
+            prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
+            suffix=
           # list of Docker images to use as base name for tags
           images: |
             aperimau/nvidia-cuda-ffmpeg
@@ -89,13 +93,11 @@ jobs:
           # generate Docker tags based on the following events/attributes
           # yamllint disable rule:line-length
           tags: |
-            type=schedule,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
-            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
-            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
-            type=sha,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
-            type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
-            type=edge,enable=${{ matrix.ffmpeg == '6.0' }},priority=600prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
-            type=edge,enable=${{ matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+            type=edge,enable=${{ matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
           # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache
