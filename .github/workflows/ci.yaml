@@ -89,11 +89,12 @@ jobs:
           # generate Docker tags based on the following events/attributes
           # yamllint disable rule:line-length
           tags: |
-            type=schedule,prefix=${{ matrix.version }}-${{ matrix.os }}-
-            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.os }}-
-            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.os }}-
-            type=sha,prefix=${{ matrix.version }}-${{ matrix.os }}-
-            type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
+            type=schedule,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
+            type=ref,event=branch,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
+            type=ref,event=pr,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
+            type=sha,prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-
+            type=edge,enable=true,priority=700prefix=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
+            type=edge,enable=${{ matrix.ffmpeg == '6.0' }},priority=600prefix=${{ matrix.version }}-${{ matrix.os }}-,suffix=,branch=$repo.default_branch
             type=edge,enable=${{ matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
           # yamllint enable rule:line-length
 
