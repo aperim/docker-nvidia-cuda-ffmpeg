@@ -102,7 +102,7 @@ jobs:
 
       - name: 🏗 Set up build cache
         id: cache
-        uses: actions/cache@v3.2.6
+        uses: actions/cache@v3.3.1
         with:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
