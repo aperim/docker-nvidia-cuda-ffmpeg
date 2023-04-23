@@ -57,7 +57,7 @@ jobs:
   build:
     strategy:
       matrix:
-        version: [12.0.1, 12.0.0, 11.8.0, 11.7.1, 11.7.0]
+        version: [12.1.1, 12.0.1, 12.0.0, 11.8.0, 11.7.1, 11.7.0]
         ffmpeg: [5.1.2, "6.0"]
         os: [ubuntu22.04]
     # yamllint disable rule:line-length
@@ -97,7 +97,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
-            type=edge,enable=${{ matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
+            type=edge,enable=${{ matrix.version == '12.1.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
           # yamllint enable rule:line-length
 
       - name: 🏗 Set up build cache

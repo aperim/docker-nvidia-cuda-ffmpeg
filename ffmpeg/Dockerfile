@@ -1,4 +1,4 @@
-ARG CUDA=12.0.1
+ARG CUDA=12.1.1
 ARG OS=ubuntu22.04
 ARG BULDIMAGE=${CUDA}-devel-${OS}
 ARG RUNIMAGE=${CUDA}-runtime-${OS}
