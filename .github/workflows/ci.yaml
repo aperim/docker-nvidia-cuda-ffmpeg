@@ -69,14 +69,14 @@ jobs:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v3
 
-      - name: Install Latest Docker
-        # yamllint disable rule:line-length
-        run: |
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
-          sudo apt-get update
-          sudo apt-get install docker-ce
-        # yamllint enable rule:line-length
+      # - name: Install Latest Docker
+      #   # yamllint disable rule:line-length
+      #   run: |
+      #     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      #     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
+      #     sudo apt-get update
+      #     sudo apt-get install docker-ce
+      #   # yamllint enable rule:line-length
 
       - name: 📝 Docker meta
         id: meta
