@@ -450,6 +450,8 @@ COPY --from=builder \
 	/usr/lib/x86_64-linux-gnu/libzstd.so.* \
 	/usr/lib/x86_64-linux-gnu/libzvbi.so.* \
 	/usr/lib/x86_64-linux-gnu/libaribb24.so.* \
+	/usr/lib/x86_64-linux-gnu/libdavs2.so.* \
+	/usr/lib/x86_64-linux-gnu/liblcms2.so.* \
 	/lib/x86_64-linux-gnu/
 
 COPY --from=builder \
