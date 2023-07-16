@@ -59,8 +59,8 @@ jobs:
   deploy:
     strategy:
       matrix:
-        version: [12.0.1, 12.0.0, 11.8.0, 11.7.1, 11.7.0]
-        ffmpeg: [5.1.2, "6.0"]
+        version: [12.2.0, 12.0.1, 12.0.0, 11.8.0]
+        ffmpeg: [5.1.2, "6.0", "6.1-dev"]
         os: [ubuntu22.04]
     # yamllint disable rule:line-length
     name: 👷 Build & Deploy CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
@@ -71,14 +71,14 @@ jobs:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v3
 
-      - name: Install Latest Docker
-        # yamllint disable rule:line-length
-        run: |
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
-          sudo apt-get update
-          sudo apt-get install docker-ce
-        # yamllint enable rule:line-length
+      # - name: Install Latest Docker
+      #   # yamllint disable rule:line-length
+      #   run: |
+      #     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      #     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
+      #     sudo apt-get update
+      #     sudo apt-get install docker-ce
+      #   # yamllint enable rule:line-length
 
       - name: 📝 Docker meta
         id: meta
@@ -101,28 +101,16 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
-            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
-            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
             type=sha
-            type=edge,enable=${{ matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
+            type=edge,enable=${{ matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }}
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-${{ matrix.os }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.ffmpeg == '6.0' }}
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=raw,prefix=,suffix=,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.0.1' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=raw,prefix=,suffix=,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
           # yamllint enable rule:line-length
-
-      - name: 🏗 Set up build cache
-        id: cache
-        uses: actions/cache@v3.2.6
-        with:
-          path: /tmp/.buildx-cache
-          # Key is named differently to avoid collision
-          # yamllint disable rule:line-length
-          key: ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}-${{ github.sha }}
-          # yamllint disable rule:line-length
-          restore-keys: |
-            ${{ runner.os }}-multi-buildx-${{ matrix.version }}-${{ matrix.os }}-${{ matrix.ffmpeg }}
 
       - name: 🏗 Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -154,8 +142,8 @@ jobs:
           file: ./ffmpeg/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           # yamllint disable-line rule:line-length
           # platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8
           platforms: linux/amd64
@@ -169,11 +157,3 @@ jobs:
             CUDA=${{ matrix.version }}
             OS=${{ matrix.os }}
             FFMPEG_VERSION=${{ matrix.ffmpeg }}
-      # This ugly bit is necessary, or our cache will grow forever...
-      # Well until we hit GitHub's limit of 5GB :)
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
-      - name: 🚚 Swap build cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
