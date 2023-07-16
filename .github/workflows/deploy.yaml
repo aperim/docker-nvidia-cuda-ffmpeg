@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         version: [12.2.0, 12.0.1, 12.0.0, 11.8.0]
-        ffmpeg: [5.1.2, "6.0"]
+        ffmpeg: [5.1.2, "6.0", "6.1-dev"]
         os: [ubuntu22.04]
     # yamllint disable rule:line-length
     name: 👷 Build & Deploy CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
