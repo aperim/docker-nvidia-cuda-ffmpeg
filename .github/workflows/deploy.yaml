@@ -59,7 +59,7 @@ jobs:
   deploy:
     strategy:
       matrix:
-        version: [12.2.0, 12.0.1, 12.0.0, 11.8.0]
+        version: [12.2.2, 12.2.0, 12.0.1, 12.0.0, 11.8.0]
         ffmpeg: [5.1.2, "6.0", "6.1-dev"]
         os: [ubuntu22.04]
     # yamllint disable rule:line-length
@@ -101,15 +101,15 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
-            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
-            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.2' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.2' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.2' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
             type=sha
-            type=edge,enable=${{ matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
+            type=edge,enable=${{ matrix.version == '12.2.2' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},priority=700,prefix=,suffix=,branch=$repo.default_branch
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }}
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-${{ matrix.os }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.ffmpeg == '6.0' }}
             type=raw,prefix=,suffix=,value=${{ matrix.version }}-${{ matrix.ffmpeg }}-${{ matrix.os }}-latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=raw,prefix=,suffix=,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.0' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
+            type=raw,prefix=,suffix=,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && matrix.version == '12.2.2' && matrix.os == 'ubuntu22.04' && matrix.ffmpeg == '6.0' }},prefix=,suffix=
           # yamllint enable rule:line-length
 
       - name: 🏗 Set up QEMU
