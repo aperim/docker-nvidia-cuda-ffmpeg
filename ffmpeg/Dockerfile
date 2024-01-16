@@ -1,4 +1,4 @@
-ARG CUDA=12.2.0
+ARG CUDA=12.3.1
 ARG OS=ubuntu22.04
 ARG BULDIMAGE=${CUDA}-devel-${OS}
 ARG RUNIMAGE=${CUDA}-runtime-${OS}
@@ -8,7 +8,7 @@ ARG CUDA
 ARG OS
 
 RUN apt-get update && \
-	apt-get -y --allow-change-held-packages full-upgrade && \
+	DEBIAN_FRONTEND=noninteractive apt-get -y --allow-change-held-packages full-upgrade && \
 	DEBIAN_FRONTEND=noninteractive apt-get -qqy install \
 	automake \
 	autoconf \
@@ -118,26 +118,31 @@ RUN apt-get update && \
 	wget \
 	yasm
 
-ARG FFMPEG_VERSION=6.0
-ARG AVISYNTHPLUS_VERSION=3.7.2
-ARG NVCODEC_HEADERS_VERSION=12.0.16.0
+ARG FFMPEG_VERSION=6.1.1
+ARG AVISYNTHPLUS_VERSION=3.7.3
+ARG NVCODEC_HEADERS_VERSION=12.1.14.0
+# Vapoursynth versions 64 and 65 are broken
+ARG VAPOURSYNTH_VERSION=63 
 
 RUN rm -Rf /opt/src/* && \
 	mkdir -p /opt/src/nv-codec-headers /opt/src/ffmpeg /opt/src/vapoursynth && \
 	git clone --depth 1 --branch n${NVCODEC_HEADERS_VERSION} https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /opt/src/nv-codec-headers && \
 	git clone --depth 1 --branch n${FFMPEG_VERSION} https://git.ffmpeg.org/ffmpeg.git /opt/src/ffmpeg && \
-	git clone --depth 1 https://github.com/vapoursynth/vapoursynth.git /opt/src/vapoursynth && \
-	curl -L https://github.com/AviSynth/AviSynthPlus/archive/refs/tags/v${AVISYNTHPLUS_VERSION}.tar.gz | tar -xz -C /opt/src && \
-	cd /opt/src/nv-codec-headers && \
+	git clone --depth 1 --branch R${VAPOURSYNTH_VERSION} https://github.com/vapoursynth/vapoursynth.git /opt/src/vapoursynth && \
+	curl -L https://github.com/AviSynth/AviSynthPlus/archive/refs/tags/v${AVISYNTHPLUS_VERSION}.tar.gz | tar -xz -C /opt/src
+
+RUN cd /opt/src/nv-codec-headers && \
 	make && \
-	make install && \
-	cd /opt/src/vapoursynth && \
+	make install
+
+RUN cd /opt/src/vapoursynth && \
 	pip3 install -r ./python-requirements.txt && \
 	./autogen.sh && \
 	LIBGNUTLS_CFLAGS=-I/usr/include/gnutls ./configure --prefix=/usr && \
 	make -j$(nproc) && \
-	make install && \
-	cd /opt/src/AviSynthPlus-${AVISYNTHPLUS_VERSION} && \
+	make install
+
+RUN cd /opt/src/AviSynthPlus-${AVISYNTHPLUS_VERSION} && \
 	mkdir build && \
 	cd build && \
 	cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
