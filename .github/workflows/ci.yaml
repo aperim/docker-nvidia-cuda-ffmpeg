@@ -60,6 +60,15 @@ jobs:
         version: [12.3.1, 12.2.2, 12.0.1, 12.0.0, 11.8.0]
         ffmpeg: [5.1.4, "6.0.1", "6.1.1"]
         os: [ubuntu22.04]
+        include:
+          - version: 12.2.2
+            nvcodec: 12.0.16.0
+          - version: 12.0.1
+            nvcodec: 12.0.16.0
+          - version: 12.0.0
+            nvcodec: 12.0.16.0
+          - version: 11.8.0
+            nvcodec: 12.0.16.0
     # yamllint disable rule:line-length
     name: 👷 Build CUDA ${{ matrix.version }} on ${{ matrix.os }} with ffmpeg ${{ matrix.ffmpeg }}
     needs:
@@ -121,6 +130,23 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CI_PAT }}
 
+      - name: 🚀 Conditional Build Args
+        id: buildargs
+        run: |
+          args="BUILD_DATE=\"${{ steps.flags.outputs.date }}\" \
+            BUILD_DESCRIPTION=\"${{ needs.information.outputs.description }}\" \
+            BUILD_NAME=\"${{ needs.information.outputs.name }}\" \
+            BUILD_REF=\"${{ github.sha }}\" \
+            BUILD_REPOSITORY=\"${{ github.repository }}\" \
+            BUILD_VERSION=\"${{ needs.information.outputs.version }}\" \
+            CUDA=\"${{ matrix.version }}\" \
+            OS=\"${{ matrix.os }}\" \
+            FFMPEG_VERSION=\"${{ matrix.ffmpeg }}\""
+          if [[ -n "${{ matrix.nvcodec }}" ]]; then
+            args+=" NVCODEC_HEADERS_VERSION=\"${{ matrix.nvcodec }}\""
+          fi
+          echo "::set-output name=args::$args"
+
       - name: 🚀 Build
         uses: docker/build-push-action@v5
         with:
@@ -135,13 +161,4 @@ jobs:
           # yamllint disable-line rule:line-length
           # platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8
           platforms: linux/amd64
-          build-args: |
-            BUILD_DATE=${{ needs.information.outputs.version }}
-            BUILD_DESCRIPTION=${{ needs.information.outputs.description }}
-            BUILD_NAME=${{ needs.information.outputs.name }}
-            BUILD_REF=${{ github.sha }}
-            BUILD_REPOSITORY=${{ github.repository }}
-            BUILD_VERSION=${{ needs.information.outputs.version }}
-            CUDA=${{ matrix.version }}
-            OS=${{ matrix.os }}
-            FFMPEG_VERSION=${{ matrix.ffmpeg }}
+          build-args: ${{ steps.buildargs.outputs.args }}
