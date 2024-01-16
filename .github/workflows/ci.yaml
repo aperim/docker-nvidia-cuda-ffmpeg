@@ -145,7 +145,7 @@ jobs:
           if [[ -n "${{ matrix.nvcodec }}" ]]; then
             args+=" NVCODEC_HEADERS_VERSION=\"${{ matrix.nvcodec }}\""
           fi
-          echo "::set-output name=args::$args"
+          echo "args=${args}" >> $GITHUB_OUTPUT
 
       - name: 🚀 Build
         uses: docker/build-push-action@v5
